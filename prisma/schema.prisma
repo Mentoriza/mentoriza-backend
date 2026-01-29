@@ -1,0 +1,90 @@
+generator client {
+ provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  moduleFormat  = "cjs"
+
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model Indicator {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique
+  value     Float    
+  type      String  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Submission {
+id        Int      @id @default(autoincrement())
+  startDate DateTime @default(now()) 
+  endDate   DateTime
+  status    String  
+  stage     Int    
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports   Report[] 
+}
+
+model Report {
+  id            Int      @id @default(autoincrement())
+  groupId       Int    
+  fileUrl       String   
+  publicId      String?  
+  submissionId  Int      
+  status        String   @default("pending") 
+  score         Float? 
+  observations  String?  
+  keyResults    Json?  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  submission    Submission @relation(fields: [submissionId], references: [id])
+  group         Group      @relation(fields: [groupId], references: [id])   
+}
+
+model Group {
+  id            Int      @id @default(autoincrement())
+  name          String   
+  course        String   
+
+  advisorId     Int?    
+  coAdvisorId   Int?    
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reports       Report[]              
+  students      Student[]          
+
+  @@map("groups")
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  name      String   
+  email     String   @unique
+  ra        String?  @unique
+
+  course    String?  
+  class     String?         
+
+  phone     String?  
+  cpf       String?  @unique
+  birthDate DateTime?
+
+  status    String?  @default("active")
+
+  groupId   Int?
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("students")
+}
