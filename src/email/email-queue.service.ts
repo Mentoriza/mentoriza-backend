@@ -124,6 +124,47 @@ export class EmailQueueService {
     this.logger.log(`Email queued for ${to} (REPORT_UNDER_REVIEW)`);
   }
 
+  /**
+   * Enfileira o email "relatório em revisão" para vários destinatários
+   * @param recipients Lista de emails válidos (alunos + coordenador/orientador)
+   * @param groupName Nome do grupo (para o template/assunto)
+   * @param submissionName Nome/identificador da submissão
+   */
+  async sendReportUnderReviewToMany(
+    recipients: string[],
+    groupName: string,
+    submissionName: string,
+  ): Promise<void> {
+    if (recipients.length === 0) {
+      this.logger.warn('Nenhum destinatário válido para envio de email');
+      return;
+    }
+
+    const jobs = recipients.map((to) => ({
+      name: 'send-email',
+      data: {
+        type: EmailType.REPORT_UNDER_REVIEW,
+        to,
+        subject: `🔍 Relatório em avaliação - ${groupName}`,
+        data: {
+          groupName,
+          submissionName,
+        },
+      } as EmailPayload,
+      opts: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      },
+    }));
+
+    await this.emailQueue.addBulk(jobs);
+
+    this.logger.log(
+      `Enfileirados ${recipients.length} emails REPORT_UNDER_REVIEW para o grupo ${groupName}`,
+    );
+  }
+
   async sendSubmissionActiveEmail(
     to: string,
     submissionName: string,

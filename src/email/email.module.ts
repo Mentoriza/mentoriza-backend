@@ -13,6 +13,6 @@ import { EmailService } from './email.service';
     ConfigModule,
   ],
   providers: [EmailService, EmailProcessor, EmailQueueService],
-  exports: [EmailQueueService],
+  exports: [EmailQueueService, EmailService],
 })
 export class EmailModule {}

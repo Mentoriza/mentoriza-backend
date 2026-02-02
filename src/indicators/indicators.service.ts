@@ -35,4 +35,10 @@ export class IndicatorsService {
   async remove(id: number) {
     return this.prisma.indicator.delete({ where: { id } });
   }
+
+  async findAllActive() {
+    return this.prisma.indicator.findMany({
+      where: { isActive: true },
+    });
+  }
 }

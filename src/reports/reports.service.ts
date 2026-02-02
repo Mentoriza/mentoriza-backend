@@ -195,4 +195,18 @@ export class ReportsService {
       where: { id },
     });
   }
+
+  async createReportRecord(data: {
+    groupId: number;
+    fileUrl: string;
+    publicId: string;
+    submissionId: number;
+  }) {
+    return await this.prisma.report.create({
+      data: {
+        ...data,
+        status: 'under_review',
+      },
+    });
+  }
 }

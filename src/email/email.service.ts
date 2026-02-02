@@ -18,24 +18,65 @@ export class EmailService {
   }
 
   private initializeTransporter() {
-    // Configure based on your email provider
-    const emailUser = this.configService.get('EMAIL_USER');
-    const emailPassword = this.configService.get('EMAIL_PASSWORD');
-    const emailHost = this.configService.get('EMAIL_HOST', 'smtp.gmail.com');
-    const emailPort = this.configService.get('EMAIL_PORT', 587);
+    const host = this.configService.get<string>(
+      'EMAIL_HOST',
+      'live.smtp.mailtrap.io',
+    );
+    const port = Number(this.configService.get<string>('EMAIL_PORT', '587'));
+    const user = this.configService.get<string>('EMAIL_USER', 'api');
+    const pass = this.configService.get<string>('EMAIL_PASSWORD');
+
+    if (!user || !pass) {
+      this.logger.error(
+        'Credenciais SMTP não configuradas corretamente (EMAIL_USER ou EMAIL_PASSWORD ausentes)',
+      );
+      return;
+    }
 
     this.transporter = nodemailer.createTransport({
-      host: emailHost,
-      port: emailPort,
-      secure: emailPort === 465,
+      host,
+      port,
+      secure: port === 465,
       auth: {
-        user: emailUser,
-        pass: emailPassword,
+        user,
+        pass,
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
+
+      debug: true,
+      logger: true,
+    });
+
+    this.transporter.verify((error) => {
+      if (error) {
+        this.logger.error(
+          'Falha ao conectar ao servidor SMTP (Mailtrap):',
+          error.message,
+        );
+        this.logger.error(
+          'Possíveis causas: credenciais erradas, porta bloqueada, token expirado',
+        );
+      } else {
+        this.logger.log(
+          `Conexão SMTP estabelecida com sucesso! (${host}:${port})`,
+        );
+      }
     });
   }
 
   async sendEmail(payload: EmailPayload): Promise<void> {
+    this.logger.log('From email config:', {
+      host: this.configService.get<string>(
+        'EMAIL_HOST',
+        'live.smtp.mailtrap.io',
+      ),
+      port: Number(this.configService.get<string>('EMAIL_PORT', '587')),
+      user: this.configService.get<string>('EMAIL_USER', 'api'),
+      pass: this.configService.get<string>('EMAIL_PASSWORD'),
+      from: this.configService.get('EMAIL_FROM'),
+    });
     try {
       const html = this.getTemplate(payload.type, payload.data);
 
@@ -46,11 +87,12 @@ export class EmailService {
         html,
       });
 
-      this.logger.log(`Email sent successfully to ${payload.to}`);
+      this.logger.log(`Email enviado com sucesso para ${payload.to}`);
     } catch (error) {
       this.logger.error(
-        `Failed to send email to ${payload.to}: ${error.message}`,
+        `Falha ao enviar email para ${payload.to}: ${error.message}`,
       );
+      if (error.code) this.logger.error(`Código do erro: ${error.code}`);
       throw error;
     }
   }
@@ -68,7 +110,7 @@ export class EmailService {
       case EmailType.SUBMISSION_ACTIVE:
         return generateSubmissionActiveTemplate(data);
       default:
-        throw new Error(`Unknown email type: ${type as string}`);
+        throw new Error(`Tipo de email desconhecido: ${type as string}`);
     }
   }
 }

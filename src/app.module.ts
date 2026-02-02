@@ -15,9 +15,15 @@ import { UploadModule } from './upload/upload.module';
   imports: [
     ConfigModule.forRoot(),
     BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+      redis: process.env.REDIS_PUBLIC_URL,
+      defaultJobOptions: {
+        removeOnComplete: 100,
+        removeOnFail: 100,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
       },
     }),
     UploadModule,
