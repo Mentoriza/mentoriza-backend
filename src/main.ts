@@ -20,23 +20,23 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document);
+  SwaggerModule.setup('/', app, document);
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: ['amqp://guest:guest@localhost:5672'],
-      queue: 'report_results',
-      queueOptions: {
-        durable: true,
+  if (process.env.ENABLE_RMQ === 'true') {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [process.env.RMQ_URL || ''],
+        queue: 'report_results',
+        queueOptions: { durable: true },
       },
-    },
-  });
+    });
 
-  await app.startAllMicroservices();
+    await app.startAllMicroservices();
+  }
 
   await app.listen(3000);
-  console.log('Aplicação rodando na porta 3000 | Swagger: /swagger');
+  console.log('Aplicação rodando na porta 3000 | Swagger: /');
 }
 
 bootstrap();
