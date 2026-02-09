@@ -1,16 +1,14 @@
 {
-    "builds": [
-        {
-            "src": "package.json",
-            "use": "@vercel/node"
-        }
-    ],
+    "installCommand": "npm install",
+    "buildCommand": "npx prisma generate && npm run build",
     "functions": {
+        "dist/main.js": {
+            "memory": 1024,
+            "maxDuration": 10
+        },
         "api/**/*.js": {
             "memory": 1024,
             "maxDuration": 10
         }
-    },
-    "installCommand": "npm install",
-    "buildCommand": "npx prisma generate && npm run build"
+    }
 }
