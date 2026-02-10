@@ -5,6 +5,7 @@ import { IndicatorsModule } from 'src/indicators/indicators.module';
 import { CloudinaryProvider } from 'src/providers/cloudinary.provider';
 import { ReportsModule } from 'src/reports/reports.module';
 import { SubmissionsModule } from 'src/submissions/submissions.module';
+import { BulkUploadService } from './bulk-upload.service';
 import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
 
@@ -17,7 +18,7 @@ import { UploadService } from './upload.service';
     EmailModule,
   ],
   controllers: [UploadController],
-  providers: [UploadService, CloudinaryProvider],
+  providers: [UploadService, BulkUploadService, CloudinaryProvider],
   exports: [UploadService],
 })
 export class UploadModule {}

@@ -1,0 +1,6 @@
+name,email,course,class,phone,ra,cpf,birthdate
+Ana Silva,ana.silva@exemplo.com,Informática,TI-2025-A,923456789,2023001,12345678901,2005-03-15
+João Mendes,joao.mendes@exemplo.com,Eletrônica,EL-2025-B,912345678,2023002,98765432109,2004-11-20
+Maria Oliveira,maria.oliveira@exemplo.com,Informática,TI-2025-A,934567890,2023003,45678912345,2006-01-10
+Pedro Santos,pedro.santos@exemplo.com,Eletrônica,EL-2025-C,,2023004,,2005-07-05
+Sofia Costa,sofia.costa@exemplo.com,Informática,TI-2025-B,923123456,2023005,32165498701,2004-09-30

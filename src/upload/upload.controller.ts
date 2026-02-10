@@ -19,9 +19,10 @@ import { ReportQueueService } from 'src/reports/report-queue.service';
 import { ReportsService } from 'src/reports/reports.service';
 import { IndicatorsService } from '../indicators/indicators.service';
 import { SubmissionsService } from '../submissions/submissions.service';
+import { BulkUploadService } from './bulk-upload.service';
 import { UploadService } from './upload.service';
 
-@Controller('uploads-reports')
+@Controller('uploads')
 export class UploadController {
   constructor(
     private readonly uploadService: UploadService,
@@ -31,9 +32,10 @@ export class UploadController {
     private readonly reportsService: ReportsService,
     private readonly emailQueueService: EmailQueueService,
     private readonly prisma: PrismaService,
+    private readonly bulkUploadService: BulkUploadService,
   ) {}
 
-  @Post('pdf')
+  @Post('reports-pdf')
   @ApiOperation({
     summary: 'Faz upload de relatório PDF e enfileira para análise',
   })
@@ -92,5 +94,41 @@ export class UploadController {
       publicId,
       message: 'Relatório recebido. Análise em andamento (fila).',
     };
+  }
+
+  @Post('students')
+  @ApiOperation({ summary: 'Upload em massa de estudantes via CSV ou Excel' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Estudantes criados' })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadStudents(@UploadedFile() file: Express.Multer.File) {
+    return this.bulkUploadService.uploadStudents(file);
+  }
+
+  @Post('advisors')
+  @ApiOperation({ summary: 'Upload em massa de orientadores via CSV ou Excel' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Orientadores criados' })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAdvisors(@UploadedFile() file: Express.Multer.File) {
+    return this.bulkUploadService.uploadAdvisors(file);
   }
 }

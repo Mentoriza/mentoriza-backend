@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ReportsModule } from './reports/reports.module';
 import { SeedModule } from './seed/seed.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -26,7 +27,7 @@ import { UserModule } from './user/user.module';
         },
       },
     }),
-    // UploadModule,
+    UploadModule,
     IndicatorsModule,
     PrismaModule,
     SeedModule,
