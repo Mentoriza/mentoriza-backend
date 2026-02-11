@@ -46,8 +46,9 @@ async function bootstrap() {
     console.log('Microservice RMQ desabilitado (ENABLE_RMQ !== true)');
   }
 
-  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
-  await app.listen(port);
+  const port = process.env.PORT || 80;
+  await app.listen(port, '0.0.0.0');
+
   console.log(
     `Aplicação rodando na porta ${port} | Swagger: http://localhost:${port}/api`,
   );
