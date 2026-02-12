@@ -3,14 +3,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { EmailModule } from './email/email.module';
-import { IndicatorsModule } from './indicators/indicators.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { EmailModule } from './modules/email/email.module';
+import { IndicatorsModule } from './modules/indicators/indicators.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { SeedModule } from './modules/seed/seed.module';
+import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { UserModule } from './modules/users/user.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { ReportsModule } from './reports/reports.module';
-import { SeedModule } from './seed/seed.module';
-import { SubmissionsModule } from './submissions/submissions.module';
-import { UploadModule } from './upload/upload.module';
-import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UserModule } from './user/user.module';
     ReportsModule,
     EmailModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

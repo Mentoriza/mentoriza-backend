@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('seed')
 export class SeedController {

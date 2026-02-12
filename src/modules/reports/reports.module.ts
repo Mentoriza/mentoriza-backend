@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { EmailModule } from 'src/email/email.module';
+import { EmailModule } from 'src/modules/email/email.module';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ReportQueueService } from './report-queue.service';
 import { ReportProcessor } from './report.processor';

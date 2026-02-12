@@ -13,10 +13,10 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { EmailQueueService } from 'src/email/email-queue.service';
+import { EmailQueueService } from 'src/modules/email/email-queue.service';
+import { ReportQueueService } from 'src/modules/reports/report-queue.service';
+import { ReportsService } from 'src/modules/reports/reports.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ReportQueueService } from 'src/reports/report-queue.service';
-import { ReportsService } from 'src/reports/reports.service';
 import { IndicatorsService } from '../indicators/indicators.service';
 import { SubmissionsService } from '../submissions/submissions.service';
 import { BulkUploadService } from './bulk-upload.service';
@@ -96,7 +96,7 @@ export class UploadController {
     };
   }
 
-  @Post('students')
+  @Post('students-csv')
   @ApiOperation({ summary: 'Upload em massa de estudantes via CSV ou Excel' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -114,7 +114,7 @@ export class UploadController {
     return this.bulkUploadService.uploadStudents(file);
   }
 
-  @Post('advisors')
+  @Post('advisors-csv')
   @ApiOperation({ summary: 'Upload em massa de orientadores via CSV ou Excel' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EmailModule } from 'src/email/email.module';
-import { IndicatorsModule } from 'src/indicators/indicators.module';
+import { EmailModule } from 'src/modules/email/email.module';
+import { IndicatorsModule } from 'src/modules/indicators/indicators.module';
+import { ReportsModule } from 'src/modules/reports/reports.module';
+import { SubmissionsModule } from 'src/modules/submissions/submissions.module';
 import { CloudinaryProvider } from 'src/providers/cloudinary.provider';
-import { ReportsModule } from 'src/reports/reports.module';
-import { SubmissionsModule } from 'src/submissions/submissions.module';
 import { BulkUploadService } from './bulk-upload.service';
 import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';

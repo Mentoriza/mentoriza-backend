@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -142,5 +142,21 @@ export class UserService {
       where: { userId_roleId: { userId, roleId } },
     });
     return { message: 'Papel removido com sucesso' };
+  }
+
+  findByEmail(email: string) {
+    const user = this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        status: true,
+        password: true,
+      },
+    });
+
+    return user;
   }
 }

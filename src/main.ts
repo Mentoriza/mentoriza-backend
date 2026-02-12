@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -9,15 +10,32 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,POST,PUT,DELETE,PATCH',
+    credentials: false,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('API - Gerenciamento de Grupos e Relatórios')
     .setDescription(
       'API para coordenadores gerenciarem estudantes, grupos, submissões e indicadores ABNT/IA',
     )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+
+  app.use(
+    '/docs',
+    apiReference({
+      content: document,
+      pageTitle: 'Mentoriza - Scalar Docs',
+      theme: 'purple',
+      hideDownloadButton: false,
+    }),
+  );
 
   SwaggerModule.setup('api', app, document);
 
