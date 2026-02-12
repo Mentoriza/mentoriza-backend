@@ -2,8 +2,8 @@ version: '3.9'
 
 services:
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: mentoriza-rabbitmq
+    image: rabbitmq:4.2-management
+    container_name: rabbitmq
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
@@ -11,6 +11,9 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+      - '5671:5671'
+      - '25672:25672'
+      - '4369:4369'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 

@@ -16,6 +16,9 @@ CREATE TABLE "Indicator" (
     "title" TEXT NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
     "type" TEXT NOT NULL,
+    "max" DOUBLE PRECISION,
+    "min" DOUBLE PRECISION,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -48,6 +51,7 @@ CREATE TABLE "Report" (
     "keyResults" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "analyzedAt" TIMESTAMP(3),
 
     CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
 );
