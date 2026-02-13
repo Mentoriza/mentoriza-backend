@@ -17,7 +17,7 @@ import { ReportsService } from './reports.service';
         name: 'REPORT_PROCESSING_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RMQ_URL || ''],
+          urls: [process.env.RMQ_URL || 'amqp://guest:guest@localhost:5672'],
           queue: 'report_processing',
           queueOptions: { durable: true },
         },

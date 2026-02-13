@@ -40,6 +40,7 @@ export class ReportProcessor {
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
+    console.log('data-report', data);
     try {
       this.logger.log(
         `Resultado de análise recebido para relatório ID ${data.report_id} (grupo ${data.group_id})`,

@@ -1,10 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { compareSync } from 'bcrypt';
+import { EmailQueueService } from 'src/modules/email/email-queue.service';
 import { UserService } from 'src/modules/users/user.service';
 import { AuthResponseDTO, LoginDTO } from './dto/auth.dto';
-
-import { ConfigService } from '@nestjs/config';
-import { compareSync } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +16,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailQueueService: EmailQueueService,
   ) {}
 
   async login({ password, email }: LoginDTO): Promise<AuthResponseDTO> {
@@ -21,23 +26,84 @@ export class AuthService {
         'Credenciais inválidas. Verifique o email e a senha.',
       );
     }
+
     const payload = { email: user.email, sub: user.id };
+
+    const expiresInStr =
+      this.configService.get<string>('JWT_EXPIRATION_TIME') ?? '1h';
 
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: Number(
-        this.configService.get<string>('JWT_EXPIRATION_TIME') ?? 3600,
-      ),
+      expiresIn: expiresInStr as any,
     });
+
     return {
       user: {
-        username: user.name,
+        username: user.name ?? user.name ?? 'Usuário',
         email: user.email,
       },
       token,
-      expiresIn: Number(
-        this.configService.get<string>('JWT_EXPIRATION_TIME') ?? 3600,
-      ),
+      expiresIn: expiresInStr,
     };
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userService.findByEmail(email);
+
+    if (!user) {
+      return;
+    }
+
+    const resetToken = this.jwtService.sign(
+      { sub: user.id, email: user.email, type: 'password_reset' },
+      {
+        secret:
+          this.configService.get<string>('JWT_RESET_SECRET') ||
+          this.configService.get<string>('JWT_SECRET'),
+        expiresIn:
+          this.configService.get<string>('JWT_RESET_EXPIRATION') ||
+          ('60m' as any),
+      },
+    );
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    await this.emailQueueService.sendPasswordResetEmail(
+      user.email,
+      user.name || user.name,
+      resetLink,
+      '60 minutos',
+    );
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret:
+          this.configService.get<string>('JWT_RESET_SECRET') ||
+          this.configService.get<string>('JWT_SECRET'),
+      });
+
+      if (payload.type !== 'password_reset') {
+        throw new BadRequestException(
+          'Token inválido para redefinição de senha',
+        );
+      }
+
+      const user = await this.userService.findById(payload.sub);
+      if (!user) {
+        throw new BadRequestException('Usuário não encontrado');
+      }
+
+      const hashedPassword = await this.userService.hashPassword(newPassword);
+      await this.userService.update(user.id, { password: hashedPassword });
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        throw new BadRequestException('Link expirado. Solicite um novo.');
+      }
+      throw new BadRequestException('Token inválido ou expirado');
+    }
   }
 }

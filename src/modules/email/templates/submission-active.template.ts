@@ -14,119 +14,78 @@ export function generateSubmissionActiveTemplate(
   );
 
   return `
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <title>Nova Submissão Ativa - Mentoriza</title>
-    </head>
-    <body class="bg-gray-100 m-0 p-0">
-      <div class="bg-white max-w-2xl mx-auto my-8 rounded-lg shadow-lg overflow-hidden">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-[#9810FA] to-[#7a0f9f] text-white px-6 py-8">
-          <h1 class="text-3xl font-bold">📤 Submissão Ativa!</h1>
-          <p class="text-indigo-100 mt-2">Período de envio aberto</p>
-        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Submissão Aberta - Mentoriza</title>
+  <style type="text/css">
+    body { margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; }
+    .container { max-width: 580px; margin: 20px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #A010F9 0%, #7a0ac2 100%); color: white; padding: 40px 24px 32px; text-align: center; }
+    .header h1 { margin:0; font-size: 28px; font-weight: 700; }
+    .header p { margin: 8px 0 0; font-size: 16px; opacity: 0.95; }
+    .content { padding: 32px 24px; color: #333; line-height: 1.6; font-size: 16px; }
+    .btn { display: inline-block; background: #A010F9; color: white !important; font-weight: 600; padding: 14px 32px; border-radius: 12px; text-decoration: none; margin: 20px 0; }
+    .info-box { background: #f8f5ff; border: 1px solid #d9ccff; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center; }
+    .footer { background: #f4f4f4; padding: 24px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📤 Nova Submissão Aberta!</h1>
+      <p>Período de envio disponível</p>
+    </div>
 
-        <!-- Content -->
-        <div class="px-6 py-8">
-          <p class="text-gray-700 text-lg mb-6">
-            Olá pessoal,
-          </p>
+    <div class="content">
+      <p>Olá pessoal,</p>
+      <p>Uma nova oportunidade de submissão foi aberta. Enviem seus relatórios na plataforma.</p>
 
-          <p class="text-gray-600 mb-6">
-            Uma nova rodada de submissão foi aberta! Agora vocês podem fazer upload de seus relatórios 
-            na plataforma. <span class="font-semibold">Atenção ao prazo!</span>
-          </p>
-
-          <!-- Submission Info -->
-          <div class="bg-gradient-to-br from-[#f3f0ff] to-[#faf5ff] border-2 border-[#9810FA] rounded-lg p-6 mb-6">
-            <h3 class="text-[#9810FA] font-bold text-lg mb-4">📌 Informações da Submissão</h3>
-            
-            <div class="space-y-3">
-              <div class="bg-white p-3 rounded border border-[#9810FA] border-opacity-30">
-                <p class="text-sm text-gray-600 font-semibold">Submissão:</p>
-                <p class="text-[#9810FA] font-semibold text-lg">${data.submissionName}</p>
-              </div>
-
-              <div class="bg-white p-3 rounded border border-[#9810FA] border-opacity-30">
-                <p class="text-sm text-gray-600 font-semibold">Prazo Limite:</p>
-                <p class="text-lg font-semibold text-gray-800">${deadlineFormatted}</p>
-              </div>
-
-              <div class="bg-white p-3 rounded border border-red-300 bg-red-50">
-                <p class="text-sm text-red-700 font-semibold">⏰ Tempo Restante:</p>
-                <p class="text-lg font-bold text-red-600">${daysUntilDeadline} dias</p>
-              </div>
-            </div>
-          </div>
-
-          ${
-            data.description
-              ? `
-          <!-- Description -->
-          <div class="bg-gray-50 rounded-lg p-6 mb-6">
-            <h3 class="text-gray-800 font-bold text-lg mb-3">📝 Descrição</h3>
-            <p class="text-gray-700">${data.description}</p>
-          </div>
-          `
-              : ''
-          }
-
-          <!-- Important Points -->
-          <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 mb-6">
-            <h3 class="text-blue-800 font-bold mb-3">✨ Pontos Importantes</h3>
-            <ul class="space-y-2">
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">📋</span>
-                Verifique todos os requisitos antes de enviar
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">📄</span>
-                Arquivo deve estar em PDF
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">⚠️</span>
-                Não haverá extensão de prazo - respeite o cronograma
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">🔍</span>
-                Sua submissão será avaliada automaticamente por IA
-              </li>
-            </ul>
-          </div>
-
-          <!-- Timeline -->
-          <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-[#9810FA] border-opacity-30 rounded-lg p-6 mb-6">
-            <h3 class="text-[#9810FA] font-bold mb-3">🗓️ Cronograma</h3>
-            <div class="space-y-2 text-sm">
-              <p class="flex items-center"><span class="text-[#9810FA] font-bold mr-2">1.</span> Faça upload do seu relatório</p>
-              <p class="flex items-center"><span class="text-[#9810FA] font-bold mr-2">2.</span> IA avalia automaticamente (24-48h)</p>
-              <p class="flex items-center"><span class="text-[#9810FA] font-bold mr-2">3.</span> Receba resultado via email</p>
-            </div>
-          </div>
-
-          <!-- CTA Button -->
-          <div class="text-center mb-6">
-            <a href="https://mentoriza.com/submissions" class="inline-block bg-gradient-to-r from-[#9810FA] to-[#7a0f9f] text-white font-bold py-3 px-8 rounded-lg hover:shadow-lg transition transform hover:scale-105">
-              Acessar Submissão
-            </a>
-          </div>
-
-          <!-- Footer Message -->
-          <p class="text-gray-600 text-sm text-center">
-            Alguma dúvida? Entre em contato com o coordenador de seu curso.
-          </p>
-        </div>
-
-        <!-- Footer -->
-        <div class="bg-gray-100 px-6 py-4 text-center text-sm text-gray-600">
-          <p>© 2026 Mentoriza - Sistema de Gestão de Submissões</p>
-        </div>
+      <div class="info-box">
+        <h3 style="margin:0 0 8px;">${data.submissionName}</h3>
+        <p style="font-size:20px; font-weight:700; color:#A010F9; margin:8px 0;">
+          Prazo: ${deadlineFormatted}
+        </p>
+        <p style="color:#e11d48; font-weight:600; font-size:18px;">
+           Restam ${daysUntilDeadline} dias
+        </p>
       </div>
-    </body>
-    </html>
+
+      ${
+        data.description
+          ? `
+      <div style="margin:24px 0;">
+        <h3>Descrição da tarefa</h3>
+        <p>${data.description}</p>
+      </div>
+      `
+          : ''
+      }
+
+      <h3>Pontos importantes</h3>
+      <ul style="padding-left:24px; margin:16px 0; line-height:1.7;">
+        <li> Arquivo apenas em PDF</li>
+        <li>Verifique normas ABNT e referências</li>
+        <li>Sem prorrogação de prazo</li>
+        <li>Avaliação automática por IA</li>
+      </ul>
+
+      <div style="text-align:center;">
+        <a href="https://mentoriza.com/submissions" class="btn">Acessar Plataforma</a>
+      </div>
+
+      <p style="text-align:center; font-size:14px; color:#555; margin-top:32px;">
+        Dúvidas? Fale com o coordenador do curso.
+      </p>
+    </div>
+
+    <div class="footer">
+      © 2026 Mentoriza – Gestão Inteligente de Submissões
+    </div>
+  </div>
+</body>
+</html>
   `;
 }

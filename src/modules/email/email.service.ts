@@ -2,10 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { EmailPayload, EmailType } from './email.types';
+import { generateAdvisorGroupAssignedTemplate } from './templates/advisor-group-assigned.template';
+import { generateAdvisorGroupRemovedTemplate } from './templates/advisor-group-removed.template';
 import { generateGroupPublishedTemplate } from './templates/group-published.template';
+import { generatePasswordResetTemplate } from './templates/password-reset.template';
 import { generateReportApprovedTemplate } from './templates/report-approved.template';
 import { generateReportRejectedTemplate } from './templates/report-rejected.template';
 import { generateReportUnderReviewTemplate } from './templates/report-under-review.template';
+import { generateStudentGroupAssignedTemplate } from './templates/student-group-assigned.template';
+import { generateStudentGroupChangedTemplate } from './templates/student-group-changed.template';
 import { generateSubmissionActiveTemplate } from './templates/submission-active.template';
 
 @Injectable()
@@ -97,14 +102,33 @@ export class EmailService {
     switch (type) {
       case EmailType.GROUP_PUBLISHED:
         return generateGroupPublishedTemplate(data);
+
       case EmailType.REPORT_APPROVED:
         return generateReportApprovedTemplate(data);
+
       case EmailType.REPORT_REJECTED:
         return generateReportRejectedTemplate(data);
+
       case EmailType.REPORT_UNDER_REVIEW:
         return generateReportUnderReviewTemplate(data);
+
       case EmailType.SUBMISSION_ACTIVE:
         return generateSubmissionActiveTemplate(data);
+
+      case EmailType.PASSWORD_RESET:
+        return generatePasswordResetTemplate(data);
+
+      case EmailType.STUDENT_GROUP_ASSIGNED:
+        return generateStudentGroupAssignedTemplate(data);
+
+      case EmailType.STUDENT_GROUP_CHANGED:
+        return generateStudentGroupChangedTemplate(data);
+
+      case EmailType.ADVISOR_GROUP_ASSIGNED:
+        return generateAdvisorGroupAssignedTemplate(data);
+
+      case EmailType.ADVISOR_GROUP_REMOVED:
+        return generateAdvisorGroupRemovedTemplate(data);
       default:
         throw new Error(`Unknown email type: ${type as string}`);
     }

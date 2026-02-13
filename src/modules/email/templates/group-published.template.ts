@@ -4,131 +4,124 @@ export function generateGroupPublishedTemplate(
   data: GroupPublishedEmailData,
 ): string {
   return `
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <title>Grupo Publicado - Mentoriza</title>
-    </head>
-    <body class="bg-gray-100 m-0 p-0">
-      <div class="bg-white max-w-2xl mx-auto my-8 rounded-lg shadow-lg overflow-hidden">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-[#9810FA] to-[#7a0f9f] text-white px-6 py-8">
-          <h1 class="text-3xl font-bold">Bem-vindo ao Mentoriza!</h1>
-          <p class="text-indigo-100 mt-2">Sua participação começou</p>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grupo Publicado – Bem-vindo ao Mentoriza</title>
+  <style type="text/css">
+    body { margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; }
+    .container { max-width: 580px; margin: 20px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #A010F9 0%, #7a0ac2 100%); color: white; padding: 40px 24px 32px; text-align: center; }
+    .header h1 { margin:0; font-size: 28px; font-weight: 700; }
+    .header p { margin: 8px 0 0; font-size: 16px; opacity: 0.95; }
+    .content { padding: 32px 24px; color: #333; line-height: 1.6; font-size: 16px; }
+    .btn { display: inline-block; background: #A010F9; color: white !important; font-weight: 600; padding: 14px 32px; border-radius: 12px; text-decoration: none; margin: 24px 0; }
+    .info-box { background: #f8f5ff; border: 1px solid #d9ccff; border-radius: 12px; padding: 24px; margin: 24px 0; }
+    .warning { color: #dc2626; font-size: 14px; font-weight: 600; margin-top: 12px; }
+    .label { font-size: 13px; color: #666; font-weight: 600; margin-bottom: 4px; }
+    .value { font-size: 17px; color: #111; margin: 0; }
+    .footer { background: #f4f4f4; padding: 24px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Bem-vindo ao Mentoriza!</h1>
+      <p>Sua conta e grupo já estão ativos</p>
+    </div>
+
+    <div class="content">
+      <p>Olá <strong>${data.studentName}</strong>,</p>
+
+      <p>Parabéns! Seu grupo foi publicado com sucesso. Agora você já pode acessar a plataforma usando as credenciais abaixo.</p>
+
+      <div class="info-box">
+        <h3 style="margin:0 0 20px; color:#A010F9;">Suas Credenciais de Acesso</h3>
+        
+        <div style="margin-bottom: 20px;">
+          <div class="label">Email</div>
+          <p class="value" style="font-family: monospace;">${data.email}</p>
         </div>
-
-        <!-- Content -->
-        <div class="px-6 py-8">
-          <p class="text-gray-700 text-lg mb-6">
-            Olá <span class="font-bold text-[#9810FA]">${data.studentName}</span>,
-          </p>
-
-          <p class="text-gray-600 mb-6">
-            Parabéns! Seu grupo foi <span class="font-semibold">publicado</span> e suas credenciais estão prontas. Você pode agora acessar a plataforma com seus dados de login.
-          </p>
-
-          <!-- Credentials Box -->
-          <div class="bg-gradient-to-br from-[#f3f0ff] to-[#faf5ff] border-2 border-[#9810FA] rounded-lg p-6 mb-6">
-            <h3 class="text-[#9810FA] font-bold text-lg mb-4">📋 Suas Credenciais</h3>
-            
-            <div class="space-y-3 mb-6">
-              <div class="bg-white p-3 rounded border border-[#9810FA] border-opacity-30">
-                <p class="text-sm text-gray-600 font-semibold">Email:</p>
-                <p class="text-[#9810FA] font-mono text-lg">${data.email}</p>
-              </div>
-              
-              <div class="bg-white p-3 rounded border border-[#9810FA] border-opacity-30">
-                <p class="text-sm text-gray-600 font-semibold">Senha Temporária:</p>
-                <p class="text-[#9810FA] font-mono text-lg">${data.password}</p>
-              </div>
-
-              <p class="text-sm text-red-600 mt-3">
-                ⚠️ Recomendamos alterar sua senha no primeiro acesso
-              </p>
-            </div>
-          </div>
-
-          <!-- Group Info -->
-          <div class="bg-gray-50 rounded-lg p-6 mb-6">
-            <h3 class="text-gray-800 font-bold text-lg mb-4">👥 Informações do Grupo</h3>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-600 font-semibold">Grupo:</p>
-                <p class="text-gray-800">${data.groupName}</p>
-              </div>
-              
-              <div>
-                <p class="text-sm text-gray-600 font-semibold">Curso:</p>
-                <p class="text-gray-800">${data.courseCode}</p>
-              </div>
-
-              ${
-                data.studentRA
-                  ? `
-              <div>
-                <p class="text-sm text-gray-600 font-semibold">RA:</p>
-                <p class="text-gray-800">${data.studentRA}</p>
-              </div>
-              `
-                  : ''
-              }
-            </div>
-          </div>
-
-          <!-- Advisors Info -->
-          <div class="bg-gray-50 rounded-lg p-6 mb-6">
-            <h3 class="text-gray-800 font-bold text-lg mb-4">🎓 Orientadores</h3>
-            
-            <div class="space-y-3">
-              <div class="flex items-start">
-                <span class="text-[#9810FA] font-bold mr-3">📌</span>
-                <div>
-                  <p class="font-semibold text-gray-800">${data.advisorName}</p>
-                  <p class="text-sm text-gray-600">Orientador</p>
-                  ${data.advisorEmail ? `<p class="text-sm text-[#9810FA]">${data.advisorEmail}</p>` : ''}
-                </div>
-              </div>
-
-              ${
-                data.coAdvisorName
-                  ? `
-              <div class="flex items-start">
-                <span class="text-[#9810FA] font-bold mr-3">📌</span>
-                <div>
-                  <p class="font-semibold text-gray-800">${data.coAdvisorName}</p>
-                  <p class="text-sm text-gray-600">Co-orientador</p>
-                  ${data.coAdvisorEmail ? `<p class="text-sm text-[#9810FA]">${data.coAdvisorEmail}</p>` : ''}
-                </div>
-              </div>
-              `
-                  : ''
-              }
-            </div>
-          </div>
-
-          <!-- CTA Button -->
-          <div class="text-center mb-6">
-            <a href="https://mentoriza.com/login" class="inline-block bg-gradient-to-r from-[#9810FA] to-[#7a0f9f] text-white font-bold py-3 px-8 rounded-lg hover:shadow-lg transition transform hover:scale-105">
-              Acessar Plataforma
-            </a>
-          </div>
-
-          <!-- Footer Message -->
-          <p class="text-gray-600 text-sm text-center">
-            Se tiver dúvidas, entre em contato com o coordenador de seu curso.
-          </p>
+        
+        <div style="margin-bottom: 20px;">
+          <div class="label">Senha Temporária</div>
+          <p class="value" style="font-family: monospace;">${data.password}</p>
         </div>
+        
+        <p class="warning"> Altere sua senha imediatamente após o primeiro login por segurança.</p>
+      </div>
 
-        <!-- Footer -->
-        <div class="bg-gray-100 px-6 py-4 text-center text-sm text-gray-600">
-          <p>© 2026 Mentoriza - Sistema de Gestão de Submissões</p>
+      <div class="info-box">
+        <h3 style="margin:0 0 20px; color:#444;">Informações do Grupo</h3>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+          <div style="flex: 1; min-width: 200px;">
+            <div class="label">Grupo</div>
+            <p class="value">${data.groupName}</p>
+          </div>
+          
+          <div style="flex: 1; min-width: 200px;">
+            <div class="label">Curso</div>
+            <p class="value">${data.courseCode}</p>
+          </div>
+          
+          ${
+            data.studentRA
+              ? `
+          <div style="flex: 1; min-width: 200px;">
+            <div class="label">RA</div>
+            <p class="value">${data.studentRA}</p>
+          </div>
+          `
+              : ''
+          }
         </div>
       </div>
-    </body>
-    </html>
+
+      ${
+        data.advisorName
+          ? `
+      <div class="info-box">
+        <h3 style="margin:0 0 20px; color:#444;">Orientador${data.coAdvisorName ? 'es' : ''}</h3>
+        
+        <div style="margin-bottom: 16px;">
+          <div style="font-weight: 600; color: #222;">${data.advisorName}</div>
+          <div style="font-size: 14px; color: #555;">Orientador</div>
+          ${data.advisorEmail ? `<div style="font-size: 14px; color: #A010F9;">${data.advisorEmail}</div>` : ''}
+        </div>
+        
+        ${
+          data.coAdvisorName
+            ? `
+        <div>
+          <div style="font-weight: 600; color: #222;">${data.coAdvisorName}</div>
+          <div style="font-size: 14px; color: #555;">Co-orientador</div>
+          ${data.coAdvisorEmail ? `<div style="font-size: 14px; color: #A010F9;">${data.coAdvisorEmail}</div>` : ''}
+        </div>
+        `
+            : ''
+        }
+      </div>
+      `
+          : ''
+      }
+
+      <div style="text-align: center;">
+        <a href="https://mentoriza.com/login" class="btn">Acessar a Plataforma Agora</a>
+      </div>
+
+      <p style="text-align: center; font-size: 14px; color: #555; margin-top: 32px;">
+        Alguma dúvida? Entre em contato com o coordenador do seu curso.
+      </p>
+    </div>
+
+    <div class="footer">
+      © 2026 Mentoriza – Gestão Inteligente de Submissões
+    </div>
+  </div>
+</body>
+</html>
   `;
 }

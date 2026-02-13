@@ -55,6 +55,7 @@ export class UserService {
         roles: {
           include: { role: { select: { id: true, name: true } } },
         },
+        student: true,
       },
     });
   }
@@ -144,19 +145,35 @@ export class UserService {
     return { message: 'Papel removido com sucesso' };
   }
 
-  findByEmail(email: string) {
-    const user = this.prisma.user.findUnique({
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        status: true,
-        password: true,
-      },
+    });
+  }
+
+  async findById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
     });
 
+    if (!user) {
+      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+    }
+
     return user;
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return bcrypt.hash(password, saltRounds);
+  }
+
+  async resetUserPassword(userId: number, newPassword: string): Promise<void> {
+    const hashedPassword = await this.hashPassword(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
   }
 }

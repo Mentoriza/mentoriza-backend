@@ -4,108 +4,68 @@ export function generateReportRejectedTemplate(
   data: ReportRejectedEmailData,
 ): string {
   const reasonsList = data.reasons
-    .map((r) => `<li class="text-gray-700">• ${r}</li>`)
+    .map((reason) => `<li style="margin:8px 0;">• ${reason}</li>`)
     .join('');
 
   return `
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <title>Relatório Rejeitado - Mentoriza</title>
-    </head>
-    <body class="bg-gray-100 m-0 p-0">
-      <div class="bg-white max-w-2xl mx-auto my-8 rounded-lg shadow-lg overflow-hidden">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-[#ef4444] to-[#dc2626] text-white px-6 py-8">
-          <h1 class="text-3xl font-bold">❌ Revisão Necessária</h1>
-          <p class="text-red-100 mt-2">Seu relatório necessita de ajustes</p>
-        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório Rejeitado - Mentoriza</title>
+  <style type="text/css">
+    body { margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; }
+    .container { max-width: 580px; margin: 20px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { color: white; padding: 40px 24px 32px; text-align: center; }
+    .header h1 { margin:0; font-size: 28px; font-weight: 700; }
+    .header p { margin: 8px 0 0; font-size: 16px; opacity: 0.95; }
+    .content { padding: 32px 24px; color: #333; line-height: 1.6; font-size: 16px; }
+    .btn { display: inline-block; background: #A010F9; color: white !important; font-weight: 600; padding: 14px 32px; border-radius: 12px; text-decoration: none; margin: 20px 0; }
+    .info-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin: 24px 0; }
+    .footer { background: #f4f4f4; padding: 24px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+      <h1>❌ Revisão necessária</h1>
+      <p>O relatório precisa de ajustes</p>
+    </div>
 
-        <!-- Content -->
-        <div class="px-6 py-8">
-          <p class="text-gray-700 text-lg mb-6">
-            Olá <span class="font-bold text-[#9810FA]">${data.groupName}</span>,
-          </p>
+    <div class="content">
+      <p>Olá <strong>${data.groupName}</strong>,</p>
+      <p>O trabalho não atendeu aos critérios e foi <strong style="color:#ef4444">rejeitado</strong>.</p>
 
-          <p class="text-gray-600 mb-6">
-            A avaliação de seu relatório foi concluída. Infelizmente, o trabalho 
-            não atendeu aos critérios de aceitação estabelecidos e foi <span class="font-semibold text-red-600">REJEITADO</span>.
-          </p>
-
-          <!-- Score Box -->
-          <div class="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-500 rounded-lg p-6 mb-6">
-            <h3 class="text-red-700 font-bold text-lg mb-4">📊 Avaliação</h3>
-            
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-gray-700 font-semibold">Pontuação:</span>
-              <div class="flex items-center gap-2">
-                <span class="text-4xl font-bold text-red-600">${data.score.toFixed(1)}</span>
-                <span class="text-gray-600">/10</span>
-              </div>
-            </div>
-
-            <div class="bg-white p-4 rounded border border-red-200">
-              <p class="text-sm text-gray-600 mb-2"><span class="font-semibold">Submissão:</span> ${data.submissionName}</p>
-              ${data.observations ? `<p class="text-sm text-gray-700 mt-2"><span class="font-semibold">Observações:</span> ${data.observations}</p>` : ''}
-            </div>
-          </div>
-
-          <!-- Reasons for Rejection -->
-          <div class="bg-orange-50 border-l-4 border-red-500 rounded-lg p-6 mb-6">
-            <h3 class="text-red-700 font-bold text-lg mb-3">⚠️ Motivos da Rejeição</h3>
-            <ul class="space-y-2">
-              ${reasonsList}
-            </ul>
-          </div>
-
-          <!-- Action Items -->
-          <div class="bg-blue-50 rounded-lg p-6 mb-6">
-            <h3 class="text-blue-800 font-bold text-lg mb-3">📋 O que fazer agora</h3>
-            <ul class="space-y-2">
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">1.</span>
-                Leia cuidadosamente os motivos da rejeição
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">2.</span>
-                Consulte seus orientadores para orientação detalhada
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">3.</span>
-                Realize as correções necessárias no relatório
-              </li>
-              <li class="flex items-start text-gray-700">
-                <span class="text-blue-600 font-bold mr-2">4.</span>
-                Resubmeta o trabalho para nova avaliação
-              </li>
-            </ul>
-          </div>
-
-          <!-- Support Message -->
-          <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-[#9810FA] border-opacity-30 rounded-lg p-4 mb-6">
-            <p class="text-gray-700">
-              💡 Não desanime! Revise os pontos críticos e sua próxima submissão certamente terá melhores resultados. 
-              Seus orientadores estão disponíveis para ajudar.
-            </p>
-          </div>
-
-          <!-- CTA Button -->
-          <div class="text-center mb-6">
-            <a href="https://mentoriza.com/dashboard" class="inline-block bg-gradient-to-r from-[#9810FA] to-[#7a0f9f] text-white font-bold py-3 px-8 rounded-lg hover:shadow-lg transition transform hover:scale-105">
-              Ver Detalhes Completos
-            </a>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="bg-gray-100 px-6 py-4 text-center text-sm text-gray-600">
-          <p>© 2026 Mentoriza - Sistema de Gestão de Submissões</p>
-        </div>
+      <div class="info-box" style="text-align:center;">
+        <p style="font-size:42px; font-weight:700; color:#ef4444; margin:0;">
+          ${data.score.toFixed(1)} /10
+        </p>
       </div>
-    </body>
-    </html>
+
+      <h3>Motivos principais</h3>
+      <ul style="padding-left:24px; color:#991b1b; line-height:1.7; margin:16px 0;">
+        ${reasonsList}
+      </ul>
+
+      <h3>Próximos passos</h3>
+      <ol style="padding-left:24px; margin:16px 0; line-height:1.7;">
+        <li>Leia os motivos com atenção</li>
+        <li>Converse com os orientadores</li>
+        <li>Faça as correções</li>
+        <li>Reenvie o arquivo</li>
+      </ol>
+
+      <div style="text-align:center; margin:32px 0;">
+        <a href="https://mentoriza.com/dashboard" class="btn">Ver Detalhes Completos</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2026 Mentoriza – Gestão Inteligente de Submissões
+    </div>
+  </div>
+</body>
+</html>
   `;
 }

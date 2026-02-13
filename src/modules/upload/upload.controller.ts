@@ -36,9 +36,7 @@ export class UploadController {
   ) {}
 
   @Post('reports-pdf')
-  @ApiOperation({
-    summary: 'Faz upload de relatório PDF e enfileira para análise',
-  })
+  @ApiOperation({ summary: 'Upload de relatório em PDF' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -50,7 +48,6 @@ export class UploadController {
       required: ['file', 'groupId'],
     },
   })
-  @ApiResponse({ status: 201, description: 'Relatório recebido e enfileirado' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadPdf(
     @UploadedFile() file: Express.Multer.File,
@@ -92,7 +89,8 @@ export class UploadController {
       reportId: report.id,
       url,
       publicId,
-      message: 'Relatório recebido. Análise em andamento (fila).',
+      message:
+        'Relatório recebido. Análise em andamento. Emails enviados para o grupo.',
     };
   }
 

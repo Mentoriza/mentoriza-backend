@@ -5,15 +5,18 @@ import {
 } from '@nestjs/common';
 import { Prisma, ReportStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { EmailQueueService } from '../email/email-queue.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 
 @Injectable()
 export class ReportsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailQueueService: EmailQueueService,
+  ) {}
 
   async create(createReportDto: CreateReportDto) {
-    // Verify submission exists and is active
     const submission = await this.prisma.submission.findUnique({
       where: { id: createReportDto.submissionId },
     });
@@ -30,7 +33,6 @@ export class ReportsService {
       );
     }
 
-    // Verify group exists
     const group = await this.prisma.group.findUnique({
       where: { id: createReportDto.groupId },
     });
@@ -202,11 +204,60 @@ export class ReportsService {
     publicId: string;
     submissionId: number;
   }) {
-    return await this.prisma.report.create({
+    const report = await this.prisma.report.create({
       data: {
         ...data,
-        status: 'under_review',
+        status: 'under_review' as ReportStatus,
+      },
+      include: {
+        group: {
+          include: {
+            students: {
+              include: {
+                user: {
+                  select: { email: true, name: true },
+                },
+              },
+            },
+            advisor: {
+              include: { user: { select: { email: true, name: true } } },
+            },
+            coAdvisor: {
+              include: { user: { select: { email: true, name: true } } },
+            },
+          },
+        },
+        submission: true,
       },
     });
+
+    const group = report.group;
+    if (group && group.students.length > 0) {
+      const studentEmails = group.students
+        .filter((s) => s.user?.email)
+        .map((s) => s.user.email);
+
+      const extraRecipients: string[] = [];
+      if (group.advisor?.user?.email)
+        extraRecipients.push(group.advisor.user.email);
+      if (group.coAdvisor?.user?.email)
+        extraRecipients.push(group.coAdvisor.user.email);
+
+      const allRecipients = [...studentEmails, ...extraRecipients];
+
+      if (allRecipients.length > 0) {
+        await this.emailQueueService.sendReportUnderReviewToMany(
+          allRecipients,
+          group.name,
+          `Submissão ${report.submissionId}`,
+        );
+
+        console.log(
+          `Enfileirados ${allRecipients.length} emails REPORT_UNDER_REVIEW para o grupo ${group.name}`,
+        );
+      }
+    }
+
+    return report;
   }
 }

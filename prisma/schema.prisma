@@ -16,7 +16,6 @@ enum ReportStatus {
   under_review
   approved
   rejected
-  
 }
 
 enum UserStatus {
