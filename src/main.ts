@@ -4,7 +4,6 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { AppModule } from './app.module';
-import { createQueueBindings } from './rmq/rmq-bootstrap';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,7 +40,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   if (process.env.ENABLE_RMQ === 'true') {
-    await createQueueBindings();
     const rmqUrl = process.env.RMQ_URL;
     if (!rmqUrl) {
       console.error(

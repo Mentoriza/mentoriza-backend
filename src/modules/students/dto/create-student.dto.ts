@@ -6,7 +6,6 @@ import {
   IsOptional,
   IsString,
   Length,
-  Matches,
 } from 'class-validator';
 
 export class CreateStudentDto {
@@ -33,7 +32,9 @@ export class CreateStudentDto {
   })
   @IsString()
   @IsOptional()
-  @Length(8, 12, { message: 'RA deve ter entre 8 e 12 caracteres' })
+  @Length(2, 12, {
+    message: 'O Registro do Aluno deve ter entre 2 e 12 caracteres',
+  })
   ra?: string;
 
   @ApiProperty({
@@ -46,8 +47,8 @@ export class CreateStudentDto {
   course?: string;
 
   @ApiProperty({
-    example: 'Noturno',
-    description: 'Turma / Turno',
+    example: 'ID',
+    description: 'Turma ',
     required: false,
   })
   @IsString()
@@ -62,16 +63,6 @@ export class CreateStudentDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @ApiProperty({
-    example: '12345678900',
-    description: 'CPF (sem pontos ou traços)',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @Matches(/^\d{11}$/, { message: 'CPF deve ter exatamente 11 dígitos' })
-  cpf?: string;
 
   @ApiProperty({
     example: '2003-05-15',

@@ -34,7 +34,7 @@ async function main() {
     console.log(`Indicador processado: ${ind.title} (${ind.value}%)`);
   }
 
-  console.log('✅ Seed concluído com sucesso!');
+  console.log('Seed concluído com sucesso!');
 }
 
 main()

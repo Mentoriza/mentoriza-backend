@@ -102,14 +102,12 @@ model Student {
   userId    Int      @unique
   name      String   
   email     String   @unique
-  ra        String?  @unique
-
+  ra        String?  @unique 
 
   course    String?  
   class     String?         
 
   phone     String?  
-  cpf       String?  @unique
   birthDate DateTime?
 
   status    StudentStatus @default(active)

@@ -39,6 +39,18 @@ export class StudentsService {
       );
     }
 
+    if (dto.ra) {
+      const existingRa = await this.prisma.student.findUnique({
+        where: { ra: dto.ra },
+      });
+
+      if (existingRa) {
+        throw new BadRequestException(
+          'Já existe um estudante registrado com este RA.',
+        );
+      }
+    }
+
     return this.prisma.student.create({
       data: {
         userId: existingUser.id,
@@ -48,7 +60,6 @@ export class StudentsService {
         course: dto.course,
         class: dto.class,
         phone: dto.phone,
-        cpf: dto.cpf,
         birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
         status: StudentStatus.active,
       },
@@ -93,7 +104,6 @@ export class StudentsService {
         course: dto.course,
         class: dto.class,
         phone: dto.phone,
-        cpf: dto.cpf,
         birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
       },
       include: { group: true },
