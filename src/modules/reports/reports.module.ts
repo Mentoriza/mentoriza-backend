@@ -29,6 +29,7 @@ import { ReportsService } from './reports.service';
     ReportsService,
     PrismaService,
     ReportQueueService,
+    // ReportResultsConsumer,
     ReportProcessor,
   ],
   exports: [ReportsService, ReportQueueService],

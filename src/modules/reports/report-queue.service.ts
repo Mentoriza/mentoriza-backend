@@ -23,7 +23,7 @@ export class ReportQueueService {
    */
   async enqueueReportEvaluation(data: ReportEvaluationEvent): Promise<void> {
     try {
-      await this.client.emit(REPORT_EVALUATION_EVENT, data).toPromise();
+      this.client.emit(REPORT_EVALUATION_EVENT, data);
       this.logger.log(
         `Evento emitido para RabbitMQ: relatório #${data.reportId} (grupo ${data.groupId})`,
       );

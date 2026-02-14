@@ -12,35 +12,35 @@ import { CreateIndicatorDto } from './dto/create-indicator.dto';
 import { UpdateIndicatorDto } from './dto/update-indicator.dto';
 import { IndicatorsService } from './indicators.service';
 
-@ApiTags('indicators')
+@ApiTags('Indicators')
 @Controller('indicators')
 export class IndicatorsController {
   constructor(private readonly indicatorsService: IndicatorsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar um novo indicador' })
-  @ApiResponse({ status: 201, description: 'Indicador criado.' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos.' })
+  @ApiOperation({ summary: 'Create a new indicator' })
+  @ApiResponse({ status: 201, description: 'Indicator created.' })
+  @ApiResponse({ status: 400, description: 'Invalid data.' })
   create(@Body() createIndicatorDto: CreateIndicatorDto) {
     return this.indicatorsService.create(createIndicatorDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os indicadores' })
+  @ApiOperation({ summary: 'List all indicators' })
   findAll() {
     return this.indicatorsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar um indicador por ID' })
-  @ApiResponse({ status: 404, description: 'Indicador não encontrado.' })
+  @ApiOperation({ summary: 'Get an indicator by ID' })
+  @ApiResponse({ status: 404, description: 'Indicator not found.' })
   findOne(@Param('id') id: string) {
     return this.indicatorsService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar um indicador' })
-  @ApiResponse({ status: 404, description: 'Indicador não encontrado.' })
+  @ApiOperation({ summary: 'Update an indicator' })
+  @ApiResponse({ status: 404, description: 'Indicator not found.' })
   update(
     @Param('id') id: string,
     @Body() updateIndicatorDto: UpdateIndicatorDto,
@@ -49,8 +49,8 @@ export class IndicatorsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deletar um indicador' })
-  @ApiResponse({ status: 404, description: 'Indicador não encontrado.' })
+  @ApiOperation({ summary: 'Delete an indicator' })
+  @ApiResponse({ status: 404, description: 'Indicator not found.' })
   remove(@Param('id') id: string) {
     return this.indicatorsService.remove(+id);
   }

@@ -158,7 +158,7 @@ export class ReportsService {
   async updateWithAIResults(
     id: number,
     score: number,
-    observations: string,
+    observations: string[],
     keyResults: Record<string, unknown>,
   ) {
     const report = await this.prisma.report.findUnique({

@@ -17,7 +17,7 @@ import { CoordinatorsService } from './coordinators.service';
 import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 
-@ApiTags('Coordenadores')
+@ApiTags('Coordinators')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('coordinators')
@@ -26,26 +26,26 @@ export class CoordinatorsController {
 
   @Post()
   @ApiOperation({
-    summary: 'Criar novo coordenador vinculado a um usuário existente',
+    summary: 'Create a new coordinator linked to an existing user',
   })
   create(@Body() createCoordinatorDto: CreateCoordinatorDto) {
     return this.coordinatorsService.create(createCoordinatorDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os coordenadores' })
+  @ApiOperation({ summary: 'List all coordinators' })
   findAll() {
     return this.coordinatorsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar coordenador por ID (com user)' })
+  @ApiOperation({ summary: 'Get coordinator by ID (including user)' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.coordinatorsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar dados do coordenador' })
+  @ApiOperation({ summary: 'Update coordinator data' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCoordinatorDto: UpdateCoordinatorDto,
@@ -55,32 +55,34 @@ export class CoordinatorsController {
 
   @Patch(':id/deactivate')
   @ApiOperation({
-    summary: 'Desativar coordenador (inativa o usuário associado)',
+    summary: 'Deactivate coordinator (deactivates the associated user)',
   })
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.coordinatorsService.deactivate(id);
   }
 
   @Patch(':id/activate')
-  @ApiOperation({ summary: 'Ativar coordenador (ativa o usuário associado)' })
+  @ApiOperation({
+    summary: 'Activate coordinator (activates the associated user)',
+  })
   activate(@Param('id', ParseIntPipe) id: number) {
     return this.coordinatorsService.activate(id);
   }
 
   @Post(':id/link-user')
-  @ApiOperation({ summary: 'Vincular coordenador a um usuário (por email)' })
+  @ApiOperation({ summary: 'Link coordinator to a user (by email)' })
   linkToUser(@Param('id', ParseIntPipe) id: number, @Body() dto: LinkUserDto) {
     return this.coordinatorsService.linkToUser(id, dto);
   }
 
   @Delete(':id/unlink-user')
-  @ApiOperation({ summary: 'Desvincular coordenador do usuário atual' })
+  @ApiOperation({ summary: 'Unlink coordinator from the current user' })
   unlinkFromUser(@Param('id', ParseIntPipe) id: number) {
     return this.coordinatorsService.unlinkFromUser(id);
   }
 
   @Get(':id/user')
-  @ApiOperation({ summary: 'Obter o usuário vinculado ao coordenador' })
+  @ApiOperation({ summary: 'Get the user linked to this coordinator' })
   getCoordinatorUser(@Param('id', ParseIntPipe) id: number) {
     return this.coordinatorsService.getCoordinatorUser(id);
   }

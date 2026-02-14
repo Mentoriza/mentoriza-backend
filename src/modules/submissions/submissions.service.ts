@@ -50,7 +50,6 @@ export class SubmissionsService {
   async getActiveSubmission() {
     const now = new Date();
 
-    // Aqui usamos await para satisfazer o lint
     const active = await this.prisma.submission.findFirst({
       where: {
         status: 'active',
@@ -67,7 +66,6 @@ export class SubmissionsService {
   }
 
   async findAll() {
-    // Aqui também usamos await
     const submissions = await this.prisma.submission.findMany({
       orderBy: [{ stage: 'asc' }, { createdAt: 'desc' }],
     });

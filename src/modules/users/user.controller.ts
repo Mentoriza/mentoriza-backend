@@ -14,32 +14,32 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
-@ApiTags('Usuários')
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar um novo usuário' })
-  @ApiResponse({ status: 201, description: 'Usuário criado' })
+  @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, description: 'User created' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os usuários' })
+  @ApiOperation({ summary: 'List all users' })
   findAll() {
     return this.userService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar um usuário por ID' })
+  @ApiOperation({ summary: 'Get a user by ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar um usuário' })
+  @ApiOperation({ summary: 'Update a user' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -48,13 +48,13 @@ export class UserController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Desativar (soft delete) um usuário' })
+  @ApiOperation({ summary: 'Deactivate (soft delete) a user' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
   }
 
   @Post(':id/roles')
-  @ApiOperation({ summary: 'Atribuir um papel a um usuário' })
+  @ApiOperation({ summary: 'Assign a role to a user' })
   assignRole(
     @Param('id', ParseIntPipe) id: number,
     @Body() assignRoleDto: AssignRoleDto,
@@ -63,7 +63,7 @@ export class UserController {
   }
 
   @Delete(':id/roles/:roleId')
-  @ApiOperation({ summary: 'Remover um papel de um usuário' })
+  @ApiOperation({ summary: 'Remove a role from a user' })
   removeRole(
     @Param('id', ParseIntPipe) id: number,
     @Param('roleId', ParseIntPipe) roleId: number,

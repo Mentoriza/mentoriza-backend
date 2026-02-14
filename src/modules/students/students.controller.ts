@@ -18,7 +18,7 @@ import { LinkGroupDto } from './dto/link-group.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentsService } from './students.service';
 
-@ApiTags('Estudantes')
+@ApiTags('Students')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('students')
@@ -27,26 +27,26 @@ export class StudentsController {
 
   @Post()
   @ApiOperation({
-    summary: 'Criar novo estudante vinculado a um usuário existente',
+    summary: 'Create a new student linked to an existing user',
   })
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os estudantes' })
+  @ApiOperation({ summary: 'List all students' })
   findAll() {
     return this.studentsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar estudante por ID (com user e group)' })
+  @ApiOperation({ summary: 'Get student by ID (including user and group)' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar dados do estudante' })
+  @ApiOperation({ summary: 'Update student data' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStudentDto: UpdateStudentDto,
@@ -55,19 +55,19 @@ export class StudentsController {
   }
 
   @Patch(':id/deactivate')
-  @ApiOperation({ summary: 'Desativar estudante' })
+  @ApiOperation({ summary: 'Deactivate student' })
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.deactivate(id);
   }
 
   @Patch(':id/activate')
-  @ApiOperation({ summary: 'Ativar estudante' })
+  @ApiOperation({ summary: 'Activate student' })
   activate(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.activate(id);
   }
 
   @Post(':id/link-group')
-  @ApiOperation({ summary: 'Vincular estudante a um grupo' })
+  @ApiOperation({ summary: 'Link student to a group' })
   linkToGroup(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: LinkGroupDto,
@@ -76,31 +76,32 @@ export class StudentsController {
   }
 
   @Delete(':id/unlink-group')
-  @ApiOperation({ summary: 'Desvincular estudante do grupo atual' })
+  @ApiOperation({ summary: 'Unlink student from the current group' })
   unlinkFromGroup(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.unlinkFromGroup(id);
   }
 
   @Get(':id/group')
-  @ApiOperation({ summary: 'Obter o grupo vinculado ao estudante' })
+  @ApiOperation({ summary: 'Get the group linked to the student' })
   getStudentGroup(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.getStudentGroup(id);
   }
 
-  @ApiOperation({ summary: 'Vincular estudante a um usuário (por email)' })
+  @Post(':id/link-user')
+  @ApiOperation({ summary: 'Link student to a user (by email)' })
   linkToUser(@Param('id', ParseIntPipe) id: number, @Body() dto: LinkUserDto) {
     return this.studentsService.linkToUser(id, dto);
   }
 
   @Delete(':id/unlink-user')
-  @ApiOperation({ summary: 'Desvincular estudante do usuário atual' })
+  @ApiOperation({ summary: 'Unlink student from the current user' })
   unlinkFromUser(@Param('id', ParseIntPipe) id: number) {
     return this.studentsService.unlinkFromUser(id);
   }
 
   @Post(':id/change-group')
   @ApiOperation({
-    summary: 'Trocar ou vincular estudante a um grupo (envia email)',
+    summary: 'Change or link student to a group (sends email)',
   })
   changeGroup(
     @Param('id', ParseIntPipe) id: number,

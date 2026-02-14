@@ -40,6 +40,9 @@ export class ReportProcessor {
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
+    console.log('Raw incoming message:', JSON.stringify(data, null, 2));
+    console.log('Full context message:', originalMsg);
+
     console.log('data-report', data);
     try {
       this.logger.log(
@@ -52,7 +55,7 @@ export class ReportProcessor {
           score: data.score,
           status: data.status,
           keyResults: JSON.stringify(data.keyResults),
-          observations: data.observations.join('; '),
+          observations: data.observations,
           analyzedAt: new Date(),
         },
       });

@@ -17,7 +17,7 @@ import { AdvisorsService } from './advisors.service';
 import { CreateAdvisorDto } from './dto/create-advisor.dto';
 import { UpdateAdvisorDto } from './dto/update-advisor.dto';
 
-@ApiTags('Orientadores')
+@ApiTags('Advisors')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('advisors')
@@ -26,26 +26,26 @@ export class AdvisorsController {
 
   @Post()
   @ApiOperation({
-    summary: 'Criar novo orientador vinculado a um usuário existente',
+    summary: 'Create a new advisor linked to an existing user',
   })
   create(@Body() createAdvisorDto: CreateAdvisorDto) {
     return this.advisorsService.create(createAdvisorDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os orientadores' })
+  @ApiOperation({ summary: 'List all advisors' })
   findAll() {
     return this.advisorsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar orientador por ID (com user)' })
+  @ApiOperation({ summary: 'Get advisor by ID (including user)' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar dados do orientador' })
+  @ApiOperation({ summary: 'Update advisor data' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAdvisorDto: UpdateAdvisorDto,
@@ -55,39 +55,39 @@ export class AdvisorsController {
 
   @Patch(':id/deactivate')
   @ApiOperation({
-    summary: 'Desativar orientador (inativa o usuário associado)',
+    summary: 'Deactivate advisor (deactivates the associated user)',
   })
   deactivate(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.deactivate(id);
   }
 
   @Patch(':id/activate')
-  @ApiOperation({ summary: 'Ativar orientador (ativa o usuário associado)' })
+  @ApiOperation({ summary: 'Activate advisor (activates the associated user)' })
   activate(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.activate(id);
   }
 
   @Post(':id/link-user')
-  @ApiOperation({ summary: 'Vincular orientador a um usuário (por email)' })
+  @ApiOperation({ summary: 'Link advisor to a user (by email)' })
   linkToUser(@Param('id', ParseIntPipe) id: number, @Body() dto: LinkUserDto) {
     return this.advisorsService.linkToUser(id, dto);
   }
 
   @Delete(':id/unlink-user')
-  @ApiOperation({ summary: 'Desvincular orientador do usuário atual' })
+  @ApiOperation({ summary: 'Unlink advisor from the current user' })
   unlinkFromUser(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.unlinkFromUser(id);
   }
 
   @Get(':id/user')
-  @ApiOperation({ summary: 'Obter o usuário vinculado ao orientador' })
+  @ApiOperation({ summary: 'Get the user linked to this advisor' })
   getAdvisorUser(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.getAdvisorUser(id);
   }
 
   @Get(':id/groups')
   @ApiOperation({
-    summary: 'Obter os grupos orientados e coorientados por este orientador',
+    summary: 'Get groups advised or co-advised by this advisor',
   })
   getAdvisedGroups(@Param('id', ParseIntPipe) id: number) {
     return this.advisorsService.getAdvisedGroups(id);

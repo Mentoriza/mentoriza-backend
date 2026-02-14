@@ -18,7 +18,7 @@ import { LinkStudentDto } from './dto/link-student.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupsService } from './groups.service';
 
-@ApiTags('Grupos')
+@ApiTags('Groups')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('groups')
@@ -26,27 +26,27 @@ export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar novo grupo' })
+  @ApiOperation({ summary: 'Create a new group' })
   create(@Body() createGroupDto: CreateGroupDto) {
     return this.groupsService.create(createGroupDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os grupos' })
+  @ApiOperation({ summary: 'List all groups' })
   findAll() {
     return this.groupsService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Buscar grupo por ID (com estudantes, advisor e coAdvisor)',
+    summary: 'Get group by ID (including students, advisor and co-advisor)',
   })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar dados do grupo' })
+  @ApiOperation({ summary: 'Update group data' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateGroupDto: UpdateGroupDto,
@@ -55,27 +55,25 @@ export class GroupsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deletar grupo' })
+  @ApiOperation({ summary: 'Delete group' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.delete(id);
   }
 
   @Patch(':id/publish')
-  @ApiOperation({ summary: 'Publicar grupo (isPublished = true)' })
+  @ApiOperation({ summary: 'Publish group (isPublished = true)' })
   publish(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.publish(id);
   }
 
   @Patch(':id/unpublish')
-  @ApiOperation({
-    summary: 'Remover dos publicados grupo (isPublished = false)',
-  })
+  @ApiOperation({ summary: 'Unpublish group (isPublished = false)' })
   unpublish(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.unpublish(id);
   }
 
   @Post(':id/link-student')
-  @ApiOperation({ summary: 'Vincular estudante ao grupo' })
+  @ApiOperation({ summary: 'Link student to the group' })
   linkStudent(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: LinkStudentDto,
@@ -84,7 +82,7 @@ export class GroupsController {
   }
 
   @Delete(':id/unlink-student/:studentId')
-  @ApiOperation({ summary: 'Desvincular estudante do grupo' })
+  @ApiOperation({ summary: 'Unlink student from the group' })
   unlinkStudent(
     @Param('id', ParseIntPipe) id: number,
     @Param('studentId', ParseIntPipe) studentId: number,
@@ -93,7 +91,7 @@ export class GroupsController {
   }
 
   @Post(':id/link-advisor')
-  @ApiOperation({ summary: 'Vincular orientador principal ao grupo' })
+  @ApiOperation({ summary: 'Link main advisor to the group' })
   linkAdvisor(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: LinkAdvisorDto,
@@ -102,7 +100,7 @@ export class GroupsController {
   }
 
   @Post(':id/link-co-advisor')
-  @ApiOperation({ summary: 'Vincular co-orientador ao grupo' })
+  @ApiOperation({ summary: 'Link co-advisor to the group' })
   linkCoAdvisor(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: LinkAdvisorDto,
@@ -111,19 +109,19 @@ export class GroupsController {
   }
 
   @Delete(':id/unlink-advisor')
-  @ApiOperation({ summary: 'Desvincular orientador principal do grupo' })
+  @ApiOperation({ summary: 'Unlink main advisor from the group' })
   unlinkAdvisor(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.unlinkAdvisor(id);
   }
 
   @Delete(':id/unlink-co-advisor')
-  @ApiOperation({ summary: 'Desvincular co-orientador do grupo' })
+  @ApiOperation({ summary: 'Unlink co-advisor from the group' })
   unlinkCoAdvisor(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.unlinkCoAdvisor(id);
   }
 
   @Get(':id/students')
-  @ApiOperation({ summary: 'Listar estudantes vinculados ao grupo' })
+  @ApiOperation({ summary: 'List students linked to the group' })
   getGroupStudents(@Param('id', ParseIntPipe) id: number) {
     return this.groupsService.getGroupStudents(id);
   }
@@ -131,7 +129,7 @@ export class GroupsController {
   @Post(':id/add-student')
   @ApiOperation({
     summary:
-      'Adicionar estudante ao grupo (pode trocar se já estiver em outro)',
+      'Add student to the group (can move student if already in another group)',
   })
   addStudent(
     @Param('id', ParseIntPipe) id: number,

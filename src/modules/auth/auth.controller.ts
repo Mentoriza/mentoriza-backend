@@ -14,60 +14,60 @@ import {
   ResetPasswordDto,
 } from './dto/auth.dto';
 
-@ApiTags('Autenticação')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Login do usuário' })
+  @ApiOperation({ summary: 'User login' })
   @ApiResponse({
     status: 200,
-    description: 'Login realizado com sucesso',
+    description: 'Login successful',
     type: AuthResponseDTO,
   })
-  @ApiUnauthorizedResponse({ description: 'Credenciais inválidas' })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   async login(@Body() loginData: LoginDTO): Promise<AuthResponseDTO> {
     return this.authService.login(loginData);
   }
 
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Solicitar redefinição de senha (envia email)' })
+  @ApiOperation({ summary: 'Request password reset (sends email)' })
   @ApiResponse({
     status: 200,
     description:
-      'Link de redefinição enviado (mensagem genérica por segurança)',
+      'Password reset link sent (generic message for security reasons)',
     schema: {
       example: {
-        message: 'Se o email estiver cadastrado, você receberá um link.',
+        message: 'If the email is registered, you will receive a reset link.',
       },
     },
   })
-  @ApiBadRequestResponse({ description: 'Erro na solicitação' })
+  @ApiBadRequestResponse({ description: 'Request error' })
   async forgotPassword(
     @Body() dto: ForgotPasswordDto,
   ): Promise<{ message: string }> {
     await this.authService.forgotPassword(dto.email);
     return {
       message:
-        'Se o email estiver cadastrado, você receberá um link de redefinição.',
+        'If the email is registered, you will receive a password reset link.',
     };
   }
 
   @Post('reset-password')
-  @ApiOperation({ summary: 'Redefinir senha usando token recebido por email' })
+  @ApiOperation({ summary: 'Reset password using the token received by email' })
   @ApiResponse({
     status: 200,
-    description: 'Senha atualizada com sucesso',
-    schema: { example: { message: 'Senha atualizada.' } },
+    description: 'Password updated successfully',
+    schema: { example: { message: 'Password updated.' } },
   })
   @ApiBadRequestResponse({
-    description: 'Token inválido, expirado ou dados incorretos',
+    description: 'Invalid, expired token or incorrect data',
   })
   async resetPassword(
     @Body() dto: ResetPasswordDto,
   ): Promise<{ message: string }> {
     await this.authService.resetPassword(dto.token, dto.newPassword);
-    return { message: 'Senha atualizada com sucesso. Faça login.' };
+    return { message: 'Password updated successfully. Please log in.' };
   }
 }

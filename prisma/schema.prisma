@@ -62,7 +62,7 @@ model Report {
   submissionId  Int      
   status        ReportStatus @default(under_review)
   score         Float? 
-  observations  String?  
+  observations  String[]  
   keyResults    Json?  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

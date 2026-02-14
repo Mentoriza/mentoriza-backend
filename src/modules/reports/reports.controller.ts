@@ -118,7 +118,7 @@ export class ReportsController {
     @Body()
     body: {
       score: number;
-      observations: string;
+      observations: string[];
       keyResults: Record<string, unknown>;
     },
   ) {

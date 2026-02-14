@@ -48,5 +48,5 @@ export class CreateReportDto {
   })
   @IsOptional()
   @IsString()
-  observations?: string;
+  observations?: string[];
 }
