@@ -138,7 +138,7 @@ export class EmailQueueService {
     const payload: EmailPayload = {
       type: EmailType.PASSWORD_RESET,
       to,
-      subject: '🔑 Redefinir sua senha no Mentoriza',
+      subject: ' Redefinir sua senha no Mentoriza',
       data: {
         name,
         email: to,

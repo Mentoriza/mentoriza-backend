@@ -47,7 +47,7 @@ CREATE TABLE "Report" (
     "submissionId" INTEGER NOT NULL,
     "status" "ReportStatus" NOT NULL DEFAULT 'under_review',
     "score" DOUBLE PRECISION,
-    "observations" TEXT,
+    "observations" TEXT[],
     "keyResults" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -81,7 +81,6 @@ CREATE TABLE "students" (
     "course" TEXT,
     "class" TEXT,
     "phone" TEXT,
-    "cpf" TEXT,
     "birthDate" TIMESTAMP(3),
     "status" "StudentStatus" NOT NULL DEFAULT 'active',
     "groupId" INTEGER,
@@ -181,9 +180,6 @@ CREATE UNIQUE INDEX "students_email_key" ON "students"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "students_ra_key" ON "students"("ra");
-
--- CreateIndex
-CREATE UNIQUE INDEX "students_cpf_key" ON "students"("cpf");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

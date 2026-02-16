@@ -55,7 +55,7 @@ export class UserService {
         roles: {
           include: { role: { select: { id: true, name: true } } },
         },
-        student: true,
+        // student: true,
       },
     });
   }

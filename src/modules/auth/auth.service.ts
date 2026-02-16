@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -51,7 +52,9 @@ export class AuthService {
     const user = await this.userService.findByEmail(email);
 
     if (!user) {
-      return;
+      throw new NotFoundException(
+        'Este usuário nao existe crie uma conta ou verifica o email',
+      );
     }
 
     const resetToken = this.jwtService.sign(
@@ -79,12 +82,15 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
+    console.log('chegou', token);
     try {
       const payload = this.jwtService.verify(token, {
         secret:
           this.configService.get<string>('JWT_RESET_SECRET') ||
           this.configService.get<string>('JWT_SECRET'),
       });
+
+      console.log(payload);
 
       if (payload.type !== 'password_reset') {
         throw new BadRequestException(
@@ -98,8 +104,10 @@ export class AuthService {
       }
 
       const hashedPassword = await this.userService.hashPassword(newPassword);
+      console.log('hashedPassword', hashedPassword);
       await this.userService.update(user.id, { password: hashedPassword });
     } catch (err) {
+      console.log(err);
       if (err.name === 'TokenExpiredError') {
         throw new BadRequestException('Link expirado. Solicite um novo.');
       }
