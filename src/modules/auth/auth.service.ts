@@ -70,7 +70,7 @@ export class AuthService {
     );
 
     const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3001';
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     await this.emailQueueService.sendPasswordResetEmail(

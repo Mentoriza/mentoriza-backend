@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -44,5 +45,11 @@ export class SubmissionsController {
   @ApiOperation({ summary: 'List all submissions' })
   findAll() {
     return this.submissionsService.findAll();
+  }
+
+  @Delete()
+  @ApiOperation({ summary: 'Remove submission' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.submissionsService.remove(id);
   }
 }

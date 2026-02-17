@@ -86,7 +86,7 @@ export class SubmissionsService {
   }
 
   async remove(id: number) {
-    await this.findOne(id); // valida existência
+    await this.findOne(id);
 
     return this.prisma.submission.delete({
       where: { id },

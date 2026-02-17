@@ -38,19 +38,12 @@ export function generatePasswordResetTemplate(
       <p>Recebemos um pedido para redefinir a senha da sua conta no Mentoriza. Clique no botão abaixo para criar uma nova senha:</p>
 
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${data.resetLink}" class="btn" style="font-size: 18px; padding: 16px 40px;">
+        <a href="${data.resetLink}" target="_blank" class="btn" style="font-size: 18px; padding: 16px 40px;">
           Criar Nova Senha
         </a>
       </div>
 
-      <div class="info-box">
-        <p style="margin: 0 0 16px; font-weight: 600; color: #A010F9;">Link válido por ${data.expiresIn || '60 minutos'}</p>
-        <p class="small">Se o botão não funcionar, copie e cole este link no seu navegador:</p>
-        <p class="small" style="word-break: break-all; font-family: monospace; color: #A010F9; margin: 12px 0;">
-          ${data.resetLink}
-        </p>
-      </div>
-
+      
       <div class="warning">
         <strong>Atenção:</strong> Nunca compartilhe este link ou sua senha com ninguém. 
         Se você não solicitou esta redefinição, ignore este email — sua conta permanece segura.
@@ -71,3 +64,10 @@ export function generatePasswordResetTemplate(
 </html>
   `;
 }
+// <div class="info-box">
+//         <p style="margin: 0 0 16px; font-weight: 600; color: #A010F9;">Link válido por ${data.expiresIn || '60 minutos'}</p>
+//         <p class="small">Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+//         <p class="small" style="word-break: break-all; font-family: monospace; color: #A010F9; margin: 12px 0;">
+//           ${data.resetLink}
+//         </p>
+//       </div>

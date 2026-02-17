@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 
 import {
@@ -94,8 +95,6 @@ export class BulkUploadService {
 
     const processor = async (row: any) => {
       try {
-        // Required fields: name, email, course (Informática or Eletrônica), class (turma)
-        // Optional: phone, ra, cpf, birthDate (ISO date string)
         const {
           name,
           email,
@@ -103,7 +102,6 @@ export class BulkUploadService {
           class: studentClass,
           phone,
           ra,
-          cpf,
           birthdate,
         } = row;
 
@@ -149,7 +147,6 @@ export class BulkUploadService {
             course,
             class: studentClass,
             phone: phone || null,
-            cpf: cpf || null,
             birthDate: birthdate ? new Date(birthdate) : null,
             status: USER_STATUS.ACTIVE,
           },

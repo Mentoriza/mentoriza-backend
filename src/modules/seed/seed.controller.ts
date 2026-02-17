@@ -231,7 +231,6 @@ export class SeedController {
           course: 'Engenharia de Software',
           class: 'Noturno',
           phone: studentUser.phone || '(31) 91234-5678',
-          cpf: '123.456.789-00',
           birthDate: new Date('2003-05-15'),
           status: 'active',
           groupId: group.id,
