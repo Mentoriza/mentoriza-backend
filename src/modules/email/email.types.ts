@@ -12,6 +12,7 @@ export enum EmailType {
   ADVISOR_GROUP_REMOVED = 'advisor_group_removed',
   COADVISOR_GROUP_ASSIGNED = 'coadvisor_group_assigned',
   COADVISOR_GROUP_REMOVED = 'coadvisor_group_removed',
+  WELCOME_CREDENTIALS = 'welcome_credentials',
 }
 
 export interface EmailPayload {
@@ -64,7 +65,6 @@ export interface WelcomeCredentialsEmailData {
   studentName: string;
   email: string;
   password: string;
-  groupName: string;
   courseCode: string;
   studentRA?: string;
 }

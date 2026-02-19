@@ -42,7 +42,6 @@ export function generateWelcomeCredentialsTemplate(
 
       <h3>Dados do grupo</h3>
       <p style="margin:8px 0;">
-        <strong>Grupo:</strong> ${data.groupName}<br>
         <strong>Curso:</strong> ${data.courseCode}<br>
         ${data.studentRA ? `<strong>RA:</strong> ${data.studentRA}<br>` : ''}
       </p>

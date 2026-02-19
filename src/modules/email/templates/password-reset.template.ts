@@ -14,8 +14,8 @@ export function generatePasswordResetTemplate(
     body { margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9f9f9; }
     .container { max-width: 580px; margin: 20px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     .header { background: linear-gradient(135deg, #A010F9 0%, #7a0ac2 100%); color: white; padding: 40px 24px 32px; text-align: center; }
-    .header h1 { margin:0; font-size: 28px; font-weight: 700; }
-    .header p { margin: 8px 0 0; font-size: 16px; opacity: 0.95; }
+    .header h1 { margin:0; font-size: 28px; font-weight: 700; color:#f9f9f9;}
+    .header p { margin: 8px 0 0; font-size: 16px; opacity: 0.95; color:#f9f9f9; }
     .content { padding: 32px 24px; color: #333; line-height: 1.6; font-size: 16px; }
     .btn { display: inline-block; background: #A010F9; color: white !important; font-weight: 600; padding: 14px 32px; border-radius: 12px; text-decoration: none; margin: 24px 0; }
     .btn:hover { background: #8a0dd4; }
@@ -28,7 +28,7 @@ export function generatePasswordResetTemplate(
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔑 Redefinir sua senha</h1>
+      <h1>Redefinir sua senha</h1>
       <p>Pedido recebido com sucesso</p>
     </div>
 

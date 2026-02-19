@@ -47,7 +47,7 @@ export class SubmissionsController {
     return this.submissionsService.findAll();
   }
 
-  @Delete()
+  @Delete(':id')
   @ApiOperation({ summary: 'Remove submission' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.submissionsService.remove(id);

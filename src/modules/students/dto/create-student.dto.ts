@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
   IsEmail,
-  IsNotEmpty,
   IsOptional,
   IsString,
   Length,
@@ -14,7 +13,7 @@ export class CreateStudentDto {
     description: 'Email do estudante (deve corresponder a um User existente)',
   })
   @IsEmail({}, { message: 'Email inválido' })
-  @IsNotEmpty({ message: 'Email é obrigatório' })
+  @IsOptional()
   email: string;
 
   @ApiProperty({
@@ -22,7 +21,7 @@ export class CreateStudentDto {
     description: 'Nome completo do estudante',
   })
   @IsString()
-  @IsNotEmpty({ message: 'Nome é obrigatório' })
+  @IsOptional()
   name: string;
 
   @ApiProperty({

@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUrl,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAdvisorDto {
   @ApiProperty({
@@ -32,15 +26,6 @@ export class CreateAdvisorDto {
   @IsString()
   @IsOptional()
   specialty?: string;
-
-  @ApiProperty({
-    example: 'http://lattes.cnpq.br/1234567890123456',
-    description: 'Link do currículo Lattes (opcional)',
-    required: false,
-  })
-  @IsUrl({}, { message: 'URL do Lattes inválida' })
-  @IsOptional()
-  lattes?: string;
 
   @ApiProperty({
     example: '(244) 912-345678',

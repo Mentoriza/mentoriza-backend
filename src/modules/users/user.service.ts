@@ -3,7 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { USER_STATUS } from 'src/common/constants';
+import { PasswordUtil } from '../../common/utils/password.util';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,7 +24,7 @@ export class UserService {
       throw new ConflictException('Este email já está em uso');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await PasswordUtil.hash(password);
 
     const user = await this.prisma.user.create({
       data: {
@@ -31,7 +32,7 @@ export class UserService {
         password: hashedPassword,
         name,
         phone,
-        status: 'active',
+        status: USER_STATUS.ACTIVE,
       },
     });
 
@@ -93,7 +94,7 @@ export class UserService {
     }
 
     if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+      updateUserDto.password = await PasswordUtil.hash(updateUserDto.password);
     }
 
     return this.prisma.user.update({
@@ -164,12 +165,11 @@ export class UserService {
   }
 
   async hashPassword(password: string): Promise<string> {
-    const saltRounds = 10;
-    return bcrypt.hash(password, saltRounds);
+    return PasswordUtil.hash(password);
   }
 
   async resetUserPassword(userId: number, newPassword: string): Promise<void> {
-    const hashedPassword = await this.hashPassword(newPassword);
+    const hashedPassword = await PasswordUtil.hash(newPassword);
 
     await this.prisma.user.update({
       where: { id: userId },

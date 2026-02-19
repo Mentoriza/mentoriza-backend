@@ -10,6 +10,7 @@ import {
   PasswordResetEmailData,
   StudentGroupAssignedData,
   StudentGroupChangedData,
+  WelcomeCredentialsEmailData,
 } from './email.types';
 
 @Injectable()
@@ -48,7 +49,7 @@ export class EmailQueueService {
     const payload: EmailPayload = {
       type: EmailType.REPORT_APPROVED,
       to,
-      subject: `✅ Seu relatório foi aprovado!`,
+      subject: `Seu relatório foi aprovado!`,
       data: {
         groupName,
         score,
@@ -315,5 +316,37 @@ export class EmailQueueService {
     this.logger.log(
       `Email de remoção de ${role} enfileirado para ${data.email}`,
     );
+  }
+
+  async sendWelcomeCredentialsEmail(
+    data: WelcomeCredentialsEmailData & { resetLink: string },
+  ): Promise<void> {
+    const payload: EmailPayload = {
+      type: EmailType.WELCOME_CREDENTIALS,
+      to: data.email,
+      subject: `Bem-vindo ao Mentoriza! Suas credenciais de acesso`,
+      data: {
+        studentName: data.studentName,
+        email: data.email,
+        resetLink: data.resetLink,
+        courseCode: data.courseCode || '—',
+        studentRA: data.studentRA || '—',
+        expiresIn: '60 minutos',
+      },
+    };
+
+    await this.emailQueue.add('send-email', payload, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+      removeOnComplete: true,
+    });
+
+    this.logger.log(`Email de boas-vindas enfileirado para ${data.email}`);
+  }
+
+  async welcomeCredentialsEmailData(
+    data: WelcomeCredentialsEmailData,
+  ): Promise<void> {
+    console.log(data);
   }
 }

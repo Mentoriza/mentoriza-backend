@@ -71,7 +71,7 @@ export class GroupsService {
             user: { select: { name: true } },
           },
         },
-        students: { select: { id: true, name: true, ra: true } },
+        students: { select: { id: true, user: true, ra: true } },
       },
       orderBy: { name: 'asc' },
     });

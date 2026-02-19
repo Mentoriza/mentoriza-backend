@@ -4,9 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { StudentStatus } from '@prisma/client';
+import { USER_STATUS } from 'src/common/constants';
 import { LinkUserDto } from 'src/common/dto/link-user.dto';
+import { PasswordUtil } from 'src/common/utils/password.util';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailQueueService } from '../email/email-queue.service';
+import { UserService } from '../users/user.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { LinkGroupDto } from './dto/link-group.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -16,54 +19,61 @@ export class StudentsService {
   constructor(
     private prisma: PrismaService,
     private emailQueueService: EmailQueueService,
+    private userService: UserService,
   ) {}
 
   async create(dto: CreateStudentDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (!existingUser) {
-      throw new BadRequestException(
-        'Não existe usuário com este email. Crie o usuário primeiro.',
-      );
-    }
-
-    const existingStudent = await this.prisma.student.findUnique({
-      where: { userId: existingUser.id },
-    });
-
-    if (existingStudent) {
-      throw new BadRequestException(
-        'Este usuário já está registrado como estudante.',
-      );
-    }
-
-    if (dto.ra) {
-      const existingRa = await this.prisma.student.findUnique({
-        where: { ra: dto.ra },
+    return this.prisma.$transaction(async (tx) => {
+      let user = await tx.user.findUnique({
+        where: { email: dto.email },
       });
 
-      if (existingRa) {
+      if (!user) {
+        const password = PasswordUtil.generateSecurePassword(16);
+        const hashedPassword = await PasswordUtil.hash(password);
+
+        user = await tx.user.create({
+          data: {
+            email: dto.email,
+            password: hashedPassword,
+            name: dto.name || dto.email.split('@')[0],
+            phone: dto.phone,
+            status: USER_STATUS.ACTIVE,
+          },
+        });
+      }
+
+      const existingStudent = await tx.student.findUnique({
+        where: { userId: user.id },
+      });
+
+      if (existingStudent) {
         throw new BadRequestException(
-          'Já existe um estudante registrado com este RA.',
+          'Este usuário já está registrado como estudante.',
         );
       }
-    }
 
-    return this.prisma.student.create({
-      data: {
-        userId: existingUser.id,
-        name: dto.name,
-        email: dto.email,
-        ra: dto.ra,
-        course: dto.course,
-        class: dto.class,
-        phone: dto.phone,
-        birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
-        status: StudentStatus.active,
-      },
-      include: { user: true, group: true },
+      if (dto.ra) {
+        const existingRa = await tx.student.findUnique({
+          where: { ra: dto.ra },
+        });
+        if (existingRa) {
+          throw new BadRequestException('Já existe um estudante com este RA.');
+        }
+      }
+
+      return tx.student.create({
+        data: {
+          userId: user.id,
+          ra: dto.ra,
+          course: dto.course,
+          class: dto.class,
+          phone: dto.phone,
+          birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
+          status: StudentStatus.active,
+        },
+        include: { user: true, group: true },
+      });
     });
   }
 
@@ -73,7 +83,11 @@ export class StudentsService {
         user: { select: { id: true, email: true, name: true, status: true } },
         group: { select: { id: true, name: true, course: true } },
       },
-      orderBy: { name: 'asc' },
+      orderBy: {
+        user: {
+          name: 'asc',
+        },
+      },
     });
   }
 
@@ -99,7 +113,6 @@ export class StudentsService {
     return this.prisma.student.update({
       where: { id },
       data: {
-        name: dto.name,
         ra: dto.ra,
         course: dto.course,
         class: dto.class,
@@ -278,5 +291,68 @@ export class StudentsService {
     }
 
     return updatedStudent;
+  }
+
+  async remove_a(id: number) {
+    const student = await this.findOne(id);
+
+    if (!student) {
+      throw new NotFoundException('Estudante não encontrado no sistema');
+    }
+
+    if (student.status === StudentStatus.active) {
+      throw new BadRequestException(
+        'Não é possível excluir aluno ativo. Desative primeiro.',
+      );
+    }
+
+    return this.prisma.student.delete({
+      where: { id },
+      include: {
+        user: { select: { id: true, email: true, name: true } },
+        group: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  async remove(id: number, deleteUserAlso = false) {
+    const student = await this.prisma.student.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!student) {
+      throw new NotFoundException(`Estudante ${id} não encontrado`);
+    }
+
+    if (deleteUserAlso) {
+      const userRolesCount = await this.prisma.user.count({
+        where: {
+          id: student.userId,
+        },
+      });
+
+      if (userRolesCount > 1) {
+        throw new BadRequestException(
+          'Não é possível excluir o usuário: ele possui outros papéis no sistema.',
+        );
+      }
+
+      await this.prisma.student.delete({ where: { id } });
+
+      await this.prisma.user.delete({ where: { id: student.userId } });
+
+      return {
+        deletedStudentId: id,
+        deletedUserId: student.userId,
+        email: student.user.email,
+        message: 'Estudante e usuário excluídos com sucesso',
+      };
+    }
+
+    return this.prisma.student.delete({
+      where: { id },
+      include: { user: { select: { email: true, name: true } } },
+    });
   }
 }

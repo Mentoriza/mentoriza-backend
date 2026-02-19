@@ -4,27 +4,42 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { LinkUserDto } from 'src/common/dto/link-user.dto';
+import { PasswordUtil } from 'src/common/utils/password.util';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from '../users/user.service';
 import { CreateAdvisorDto } from './dto/create-advisor.dto';
 import { UpdateAdvisorDto } from './dto/update-advisor.dto';
 
 @Injectable()
 export class AdvisorsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UserService,
+  ) {}
 
   async create(dto: CreateAdvisorDto) {
-    const existingUser = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    if (!existingUser) {
-      throw new BadRequestException(
-        'Não existe usuário com este email. Crie o usuário primeiro.',
-      );
+    if (!user) {
+      const password = PasswordUtil.generateSecurePassword(16);
+
+      const hashedPassword = await PasswordUtil.hash(password);
+
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          password: hashedPassword,
+          name: dto.name || dto.email.split('@')[0],
+          status: 'active',
+          phone: dto.phone,
+        },
+      });
     }
 
     const existingAdvisor = await this.prisma.advisor.findUnique({
-      where: { userId: existingUser.id },
+      where: { userId: user.id },
     });
 
     if (existingAdvisor) {
@@ -35,9 +50,8 @@ export class AdvisorsService {
 
     return this.prisma.advisor.create({
       data: {
-        userId: existingUser.id,
+        userId: user.id,
         specialty: dto.specialty,
-        lattes: dto.lattes,
       },
       include: { user: true },
     });
@@ -90,7 +104,6 @@ export class AdvisorsService {
       where: { id },
       data: {
         specialty: dto.specialty,
-        lattes: dto.lattes,
       },
       include: { user: true },
     });

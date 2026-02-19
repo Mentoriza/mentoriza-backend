@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { PasswordUtil } from 'src/common/utils/password.util';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('seed')
@@ -7,7 +7,7 @@ export class SeedController {
   constructor(private prisma: PrismaService) {}
 
   private async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, 10);
+    return PasswordUtil.hash(password);
   }
 
   @Get('roles')
@@ -225,8 +225,6 @@ export class SeedController {
         update: { groupId: group.id },
         create: {
           userId: studentUser.id,
-          name: studentUser.name,
-          email: studentUser.email,
           ra: '2023001234',
           course: 'Engenharia de Software',
           class: 'Noturno',

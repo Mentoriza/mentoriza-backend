@@ -39,6 +39,7 @@ model Indicator {
   isActive  Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 
@@ -50,6 +51,8 @@ id        Int      @id @default(autoincrement())
   stage     Int    
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  
 
   reports   Report[] 
 }
@@ -66,10 +69,12 @@ model Report {
   keyResults    Json?  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
   analyzedAt    DateTime?
 
   submission    Submission @relation(fields: [submissionId], references: [id])
   group         Group      @relation(fields: [groupId], references: [id])   
+
 }
 
 model Group {
@@ -91,6 +96,7 @@ model Group {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@map("groups")
 }
@@ -100,14 +106,11 @@ model Student {
   id        Int      @id @default(autoincrement())
   user      User     @relation("UserToStudent", fields: [userId], references: [id], onDelete: Cascade)
   userId    Int      @unique
-  name      String   
-  email     String   @unique
-  ra        String?  @unique 
 
+  ra        String?  @unique
   course    String?  
   class     String?         
-
-  phone     String?  
+  phone     String?         
   birthDate DateTime?
 
   status    StudentStatus @default(active)
@@ -117,6 +120,7 @@ model Student {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@map("students")
 }
@@ -136,6 +140,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
 }
 
 
@@ -207,6 +216,7 @@ model Advisor {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 
@@ -219,4 +229,5 @@ model Coordinator {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }

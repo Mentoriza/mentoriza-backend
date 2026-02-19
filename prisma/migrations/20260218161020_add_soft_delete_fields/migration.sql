@@ -21,6 +21,7 @@ CREATE TABLE "Indicator" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Indicator_pkey" PRIMARY KEY ("id")
 );
@@ -51,6 +52,7 @@ CREATE TABLE "Report" (
     "keyResults" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "analyzedAt" TIMESTAMP(3),
 
     CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
@@ -67,6 +69,7 @@ CREATE TABLE "groups" (
     "publishedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "groups_pkey" PRIMARY KEY ("id")
 );
@@ -75,8 +78,6 @@ CREATE TABLE "groups" (
 CREATE TABLE "students" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
     "ra" TEXT,
     "course" TEXT,
     "class" TEXT,
@@ -86,6 +87,7 @@ CREATE TABLE "students" (
     "groupId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "students_pkey" PRIMARY KEY ("id")
 );
@@ -100,6 +102,9 @@ CREATE TABLE "User" (
     "status" "UserStatus" NOT NULL DEFAULT 'active',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
+    "resetPasswordToken" TEXT,
+    "resetPasswordExpires" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -154,6 +159,7 @@ CREATE TABLE "Advisor" (
     "lattes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Advisor_pkey" PRIMARY KEY ("id")
 );
@@ -165,6 +171,7 @@ CREATE TABLE "Coordinator" (
     "department" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Coordinator_pkey" PRIMARY KEY ("id")
 );
@@ -174,9 +181,6 @@ CREATE UNIQUE INDEX "Indicator_title_key" ON "Indicator"("title");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "students_userId_key" ON "students"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "students_email_key" ON "students"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "students_ra_key" ON "students"("ra");

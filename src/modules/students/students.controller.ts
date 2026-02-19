@@ -109,4 +109,16 @@ export class StudentsController {
   ) {
     return this.studentsService.changeGroup(id, dto.groupId);
   }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Excluir apenas o registro de estudante' })
+  removeStudentOnly(@Param('id', ParseIntPipe) id: number) {
+    return this.studentsService.remove(id, false);
+  }
+
+  @Delete(':id/cascade')
+  @ApiOperation({ summary: 'Excluir estudante E usuário vinculado (cuidado!)' })
+  removeWithUser(@Param('id', ParseIntPipe) id: number) {
+    return this.studentsService.remove(id, true);
+  }
 }
