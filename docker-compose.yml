@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: mentoriza-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgres://postgres:um18U5K7axIY1Bzop9pazM6Yz3rTC1ECcLOLkItnlJFujO0JCHoipMkpYARqOw5b@l40sskwsw080co4s8gck0sco:5432/postgres
+      - RMQ_URL=amqp://X2hwOrSP2ZyK0SVB:3QLQhZNhstsQeDzB2iXCe7tG4ttRa03b@5.189.174.120:5672
+      - JWT_SECRET=uma_chave_muito_longa_e_segura_aqui_gerada_com_openssl_rand_-hex_32
+      - CLOUDINARY_CLOUD_NAME=dh4kszlf3
+      - CLOUDINARY_API_KEY=683356945667413
+      - CLOUDINARY_API_SECRET=A-SLvtfbMcGhLQ2BVDe-xK0VoyQ
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=no-reply@bitkabir.com
+      - EMAIL_PASSWORD=timp uuih hlfg ewfc
+      - EMAIL_FROM=Mentoriza
+      - EMAIL_SECURE=false
+      - FRONTEND_URL=mentoriza.online
+      - CORS_ORIGIN=mentoriza.online
+      - APP_URL=https://api.mentoriza.online
+    networks:
+      - coolify
+    depends_on:
+      - caddy
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:2.8-alpine
+    container_name: coolify-proxy-manual
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    environment:
+      - CADDY_DOCKER_POLLING_INTERVAL=5s
+    networks:
+      - coolify
+    labels:
+      - 'caddy=api.mentoriza.online'
+      - 'caddy.reverse_proxy={{upstreams 3000}}'
+      - 'caddy.encode=zstd gzip'
+      - 'caddy.header=-Server'
+      - 'caddy.tls=internal'
+
+networks:
+  coolify:
+    external: true
