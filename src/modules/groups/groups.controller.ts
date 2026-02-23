@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { GenerateGroupsDto } from './dto/generate-groups.dto';
 import { LinkAdvisorDto } from './dto/link-advisor.dto';
 import { LinkStudentDto } from './dto/link-student.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -136,5 +137,14 @@ export class GroupsController {
     @Body() dto: LinkStudentDto,
   ) {
     return this.groupsService.addStudentToGroup(id, dto.studentId);
+  }
+
+  @Post('generate')
+  @ApiOperation({
+    summary:
+      'Generate groups automatically for a course with a specified group size',
+  })
+  generate(@Body() dto: GenerateGroupsDto) {
+    return this.groupsService.generateGroups(dto);
   }
 }

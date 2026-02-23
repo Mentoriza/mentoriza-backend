@@ -134,7 +134,7 @@ export class EmailQueueService {
     to: string,
     name: string | undefined,
     resetLink: string,
-    expiresIn: string = '60 minutos',
+    expiresIn: string = '1 Dia',
   ): Promise<void> {
     const payload: EmailPayload = {
       type: EmailType.PASSWORD_RESET,

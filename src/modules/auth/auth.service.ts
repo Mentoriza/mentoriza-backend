@@ -33,17 +33,11 @@ export class AuthService {
     }
 
     if (user) {
-      console.log('Senha enviada no login:', JSON.stringify(password));
-      console.log('Comprimento da senha no login:', password.length);
-      console.log('Hash salvo no banco:', user.password);
-
-      console.log('console login antes do compare', password, user.password);
       const isMatch = await PasswordUtil.compare(password, user.password);
 
-      console.log('Resultado do compare:', isMatch);
       if (!isMatch)
         throw new UnauthorizedException(
-          'Credenciais inválidas. Verifique o email e a senha.  000000002',
+          'Credenciais inválidas. Verifique o email e a senha.',
         );
     }
 
@@ -100,8 +94,6 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    console.log('Nova senha recebida no reset:', JSON.stringify(newPassword));
-    console.log('Comprimento da senha:', newPassword.length);
     try {
       const payload = this.jwtService.verify(token, {
         secret:

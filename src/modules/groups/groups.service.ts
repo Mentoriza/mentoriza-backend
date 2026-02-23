@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailQueueService } from '../email/email-queue.service';
 import { StudentsService } from '../students/students.service';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { GenerateGroupsDto } from './dto/generate-groups.dto';
 import { LinkAdvisorDto } from './dto/link-advisor.dto';
 import { LinkStudentDto } from './dto/link-student.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -296,32 +297,33 @@ export class GroupsService {
   async unlinkCoAdvisor(groupId: number) {
     const group = await this.findOne(groupId);
 
-    if (!group.advisorId) {
+    if (!group.coAdvisorId) {
       throw new BadRequestException(
-        'Este grupo não tem Co-orientador vinculado',
+        'Este grupo não tem co-orientador vinculado',
       );
     }
 
-    const advisor = await this.prisma.advisor.findUnique({
-      where: { id: group.advisorId },
+    const coAdvisor = await this.prisma.advisor.findUnique({
+      where: { id: group.coAdvisorId },
       include: { user: true },
     });
 
-    if (!advisor || !advisor.user) {
-      throw new NotFoundException('Orientador não encontrado ou sem usuário');
+    if (!coAdvisor || !coAdvisor.user) {
+      throw new NotFoundException(
+        'Co-orientador não encontrado ou sem usuário',
+      );
     }
 
     await this.emailQueueService.sendAdvisorGroupRemovedEmail({
-      advisorName: advisor.user.name || 'Orientador',
+      advisorName: coAdvisor.user.name || 'Co-orientador',
       groupName: group.name,
-      email: advisor.user.email,
-      isCoAdvisor: false,
+      email: coAdvisor.user.email,
+      isCoAdvisor: true,
     });
 
     return this.prisma.group.update({
       where: { id: groupId },
-      data: { advisorId: null },
-      include: { advisor: { include: { user: true } } },
+      data: { coAdvisorId: null },
     });
   }
 
@@ -346,5 +348,77 @@ export class GroupsService {
 
     // Chama o método do StudentsService para garantir a regra + email
     return this.studentsService.changeGroup(studentId, groupId);
+  }
+
+  async generateGroups(dto: GenerateGroupsDto) {
+    const students = await this.prisma.student.findMany({
+      where: {
+        groupId: null,
+        course: dto.course,
+        status: 'active',
+      },
+    });
+
+    if (students.length === 0) {
+      throw new BadRequestException(
+        'Não há estudantes sem grupo disponíveis para este curso',
+      );
+    }
+
+    const advisors = await this.prisma.advisor.findMany({
+      where: {
+        deletedAt: null,
+      },
+    });
+
+    if (advisors.length === 0) {
+      throw new BadRequestException('Não há orientadores disponíveis');
+    }
+
+    const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
+
+    const numGroups = Math.ceil(shuffledStudents.length / dto.groupSize);
+
+    const createdGroups: Array<
+      Awaited<ReturnType<typeof this.prisma.group.create>> & {
+        advisor: { id: number } | null;
+        students: Array<{ id: number }>;
+      }
+    > = [];
+
+    let studentIndex = 0;
+
+    for (let i = 1; i <= numGroups; i++) {
+      const randomAdvisor =
+        advisors[Math.floor(Math.random() * advisors.length)];
+
+      const group = await this.prisma.group.create({
+        data: {
+          name: `Grupo ${i}`,
+          course: dto.course,
+          advisorId: randomAdvisor.id,
+          isPublished: false,
+        },
+        include: {
+          advisor: true,
+          students: true,
+        },
+      });
+
+      const currentGroupSize = Math.min(
+        dto.groupSize,
+        shuffledStudents.length - studentIndex,
+      );
+
+      for (let j = 0; j < currentGroupSize; j++) {
+        const student = shuffledStudents[studentIndex];
+        await this.studentsService.changeGroup(student.id, group.id);
+        studentIndex++;
+      }
+
+      createdGroups.push(group);
+    }
+
+    return createdGroups;
   }
 }
