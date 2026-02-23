@@ -1,31 +1,26 @@
-
+# ---------- BUILD STAGE ----------
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 COPY package*.json ./
-
-RUN npm ci
+RUN npm install
 
 COPY . .
-
-
-RUN npx prisma generate
 RUN npm run build
 
-
+# ---------- PRODUCTION STAGE ----------
 FROM node:22-alpine
 
 WORKDIR /app
 
+COPY package*.json ./
+RUN npm install --omit=dev
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma  
 
+# Adiciona estas linhas temporariamente para debug
+RUN ls -la dist || echo "dist folder not found"
+RUN cat dist/main.js 2>/dev/null || echo "main.js not found or empty"
 
-EXPOSE 3000
-
-
-CMD ["node", "dist/main.js"]  # ajusta se o teu entry for diferente (ex: dist/server.js)
+CMD ["node", "dist/main.js"]

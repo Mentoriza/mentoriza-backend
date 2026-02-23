@@ -8,6 +8,11 @@ services:
     networks:
       - coolify
 
+    command: node dist/main.js
+
+    # ou, se preferires usar o script do package.json:
+    # command: npm run start:prod
+
     labels:
       - 'caddy=api.mentoriza.online'
       - 'caddy.reverse_proxy={{upstreams 3000}}'
