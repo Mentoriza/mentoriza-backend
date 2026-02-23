@@ -8,10 +8,7 @@ services:
     networks:
       - coolify
 
-    command: node dist/src/main.js
-
-    # ou, se preferires usar o script do package.json:
-    # command: npm run start:prod
+    command: npm run start:prod
 
     labels:
       - 'caddy=api.mentoriza.online'
