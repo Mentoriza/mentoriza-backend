@@ -21,6 +21,6 @@ COPY --from=builder /app/dist ./dist
 
 # Adiciona estas linhas temporariamente para debug
 RUN ls -la dist || echo "dist folder not found"
-RUN cat dist/main.js 2>/dev/null || echo "main.js not found or empty"
+RUN cat dist/src/main.js 2>/dev/null || echo "main.js not found or empty"
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
