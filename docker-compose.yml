@@ -11,7 +11,7 @@ services:
     command: npm run start:prod
 
     labels:
-      - 'caddy=api.mentoriza.online'
+      - 'caddy=mentoriza.online'
       - 'caddy.reverse_proxy={{upstreams 3000}}'
 
 networks:
