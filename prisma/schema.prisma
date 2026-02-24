@@ -29,19 +29,31 @@ enum StudentStatus {
 }
 
 
-model Indicator {
-  id        Int      @id @default(autoincrement())
-  title     String   @unique
-  value     Float    
-  type      String  
-  max       Float?
-  min       Float?
-  isActive  Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+enum IndicatorKey {
+  ABNT_VALIDATION
+  AI_PERCENTAGE
+  THEORETICAL_FOUNDATION
+  PROBLEM_STATEMENT
 }
 
+enum IndicatorType {
+  MIN
+  MAX
+}
+
+model Indicator {
+  id          Int           @id @default(autoincrement())
+  key         IndicatorKey  @unique
+  title       String
+  description String?
+  type        IndicatorType
+  value       Float
+  isActive    Boolean       @default(true)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+}
 
 model Submission {
 id        Int      @id @default(autoincrement())

@@ -1,3 +1,5 @@
+import { Indicator } from '@prisma/client';
+
 export const REPORT_EVALUATION_EVENT = 'report.evaluation.requested';
 
 export interface ReportEvaluationEvent {
@@ -6,16 +8,7 @@ export interface ReportEvaluationEvent {
   submissionId: number;
   fileUrl: string;
   publicId?: string;
-  indicators: {
-    createdAt: Date;
-    updatedAt: Date;
-    id: number;
-    title: string;
-    min: number | null;
-    max: number | null;
-    type: string;
-    isActive: boolean;
-  }[];
+  indicators: Indicator[];
   requestedAt?: string;
   priority?: 'low' | 'normal' | 'high';
 }

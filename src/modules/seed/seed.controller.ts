@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { IndicatorKey, IndicatorType, Prisma } from '@prisma/client';
 import { PasswordUtil } from 'src/common/utils/password.util';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -246,44 +247,69 @@ export class SeedController {
 
   @Get('indicators')
   async seedIndicators() {
-    try {
-      const indicadores = [
-        { title: 'Nível máximo aceite de IA', value: 20, type: 'max' },
-        {
-          title: 'Nível mínimo de aderência às normas ABNT',
-          value: 70,
-          type: 'min',
-        },
-        {
-          title: 'Nível mínimo de fundamentação teórica',
-          value: 50,
-          type: 'min',
-        },
-        { title: 'Originalidade (máx. similaridade)', value: 25, type: 'max' },
-        { title: 'Qualidade da redação científica', value: 60, type: 'min' },
-      ];
+    const indicatorsData: Prisma.IndicatorCreateInput[] = [
+      {
+        key: IndicatorKey.ABNT_VALIDATION,
+        title: 'Conformidade com Normas ABNT',
+        description:
+          'Valida formatação (fontes, espaçamentos, margens) via análise direta do PDF.',
+        type: IndicatorType.MIN,
+        value: 70,
+        isActive: true,
+      },
+      {
+        key: IndicatorKey.AI_PERCENTAGE,
+        title: 'Percentagem de Conteúdo Gerado por IA',
+        description:
+          'Analisa texto via IA para detectar conteúdo gerado por ferramentas como GPT.',
+        type: IndicatorType.MAX,
+        value: 20,
+        isActive: true,
+      },
+      {
+        key: IndicatorKey.THEORETICAL_FOUNDATION,
+        title: 'Fundamentação Teórica',
+        description:
+          'Avalia profundidade e qualidade da base teórica no conteúdo via IA.',
+        type: IndicatorType.MIN,
+        value: 80,
+        isActive: true,
+      },
+      {
+        key: IndicatorKey.PROBLEM_STATEMENT,
+        title: 'Validação da Problemática',
+        description:
+          'Avalia clareza, relevância e delimitação do problema de pesquisa.',
+        type: IndicatorType.MIN,
+        value: 75,
+        isActive: true,
+      },
+    ];
 
-      let created = 0;
-      for (const ind of indicadores) {
-        const existing = await this.prisma.indicator.findUnique({
-          where: { title: ind.title },
+    try {
+      const createdIndicators: Array<any> = [];
+
+      for (const indicator of indicatorsData) {
+        const created = await this.prisma.indicator.upsert({
+          where: { key: indicator.key },
+          update: { ...indicator },
+          create: indicator,
         });
-        if (!existing) {
-          await this.prisma.indicator.create({ data: ind });
-          created++;
-        }
+        createdIndicators.push(created);
       }
 
       return {
         message: 'Indicadores seed concluído',
-        created,
-        total: indicadores.length,
+        total: createdIndicators.length,
+        data: createdIndicators,
       };
     } catch (error) {
       return {
-        message: 'Erro ao seed indicators',
+        message: 'Erro ao seed indicators ❌',
         error: (error as Error).message,
       };
+    } finally {
+      await this.prisma.$disconnect();
     }
   }
 

@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: sua_senha_forte_aqui
+      POSTGRES_PASSWORD: mentoriza
       POSTGRES_DB: mentoriza
     ports:
       - '5432:5432'
