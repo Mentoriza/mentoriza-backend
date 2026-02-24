@@ -50,7 +50,6 @@ export function softDeleteExtension(prisma: PrismaClient) {
           if (args.where) {
             args.where = {
               ...args.where,
-              deletedAt: null,
             };
           }
           return query(args);

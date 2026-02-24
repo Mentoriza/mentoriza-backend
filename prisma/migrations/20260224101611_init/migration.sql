@@ -10,14 +10,20 @@ CREATE TYPE "UserStatus" AS ENUM ('active', 'inactive');
 -- CreateEnum
 CREATE TYPE "StudentStatus" AS ENUM ('active', 'inactive');
 
+-- CreateEnum
+CREATE TYPE "IndicatorKey" AS ENUM ('ABNT_VALIDATION', 'AI_PERCENTAGE', 'THEORETICAL_FOUNDATION', 'PROBLEM_STATEMENT');
+
+-- CreateEnum
+CREATE TYPE "IndicatorType" AS ENUM ('MIN', 'MAX');
+
 -- CreateTable
 CREATE TABLE "Indicator" (
     "id" SERIAL NOT NULL,
+    "key" "IndicatorKey" NOT NULL,
     "title" TEXT NOT NULL,
+    "description" TEXT,
+    "type" "IndicatorType" NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
-    "type" TEXT NOT NULL,
-    "max" DOUBLE PRECISION,
-    "min" DOUBLE PRECISION,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -35,6 +41,7 @@ CREATE TABLE "Submission" (
     "stage" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Submission_pkey" PRIMARY KEY ("id")
 );
@@ -177,7 +184,7 @@ CREATE TABLE "Coordinator" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Indicator_title_key" ON "Indicator"("title");
+CREATE UNIQUE INDEX "Indicator_key_key" ON "Indicator"("key");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "students_userId_key" ON "students"("userId");

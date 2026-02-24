@@ -14,10 +14,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { ReportQueueService } from 'src/modules/reports/report-queue.service';
-import { ReportsService } from 'src/modules/reports/reports.service';
-import { IndicatorsService } from '../indicators/indicators.service';
-import { SubmissionsService } from '../submissions/submissions.service';
 import { BulkUploadService } from './bulk-upload.service';
 import { UploadService } from './upload.service';
 
@@ -26,11 +22,6 @@ import { UploadService } from './upload.service';
 export class UploadController {
   constructor(
     private readonly uploadService: UploadService,
-    private readonly reportQueueService: ReportQueueService,
-    private readonly submissionsService: SubmissionsService,
-    private readonly indicatorsService: IndicatorsService,
-    private readonly reportsService: ReportsService,
-
     private readonly bulkUploadService: BulkUploadService,
   ) {}
 

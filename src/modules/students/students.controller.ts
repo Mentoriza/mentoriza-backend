@@ -7,12 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { LinkUserDto } from 'src/common/dto/link-user.dto';
-import { AuthGuard } from '../auth/auth.guard';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { LinkGroupDto } from './dto/link-group.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -20,7 +18,7 @@ import { StudentsService } from './students.service';
 
 @ApiTags('Students')
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}

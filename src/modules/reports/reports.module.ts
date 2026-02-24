@@ -24,12 +24,11 @@ import { ReportsService } from './reports.service';
       },
     ]),
   ],
-  controllers: [ReportsController],
+  controllers: [ReportsController, ReportProcessor],
   providers: [
     ReportsService,
     PrismaService,
     ReportQueueService,
-    // ReportResultsConsumer,
     ReportProcessor,
   ],
   exports: [ReportsService, ReportQueueService],

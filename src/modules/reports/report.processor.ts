@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { ReportStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,23 +6,19 @@ import { ReportsService } from './reports.service';
 
 export const REPORT_RESULTS_EVENT = 'report.evaluation.completed';
 
-@Injectable()
+@Controller()
 export class ReportProcessor {
   private readonly logger = new Logger(ReportProcessor.name);
 
   constructor(
     private readonly reportsService: ReportsService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) {
+    this.logger.log(
+      `ReportProcessor initialized and listening for ${REPORT_RESULTS_EVENT}`,
+    );
+  }
 
-  /**
-   * Handler para consumir mensagens da fila 'report_results'.
-   *
-   * - Usa @EventPattern para escutar eventos (fire-and-forget, sem resposta obrigatória).
-   * - Recebe o payload bruto (@Payload) e o contexto RabbitMQ (@Ctx) para ack/nack manual.
-   * - Atualiza o relatório no banco com os resultados da análise (score, status, etc.).
-   * - Em caso de erro, faz nack com requeue para tentar novamente.
-   */
   @EventPattern(REPORT_RESULTS_EVENT)
   async handleReportResults(
     @Payload()
@@ -42,8 +38,8 @@ export class ReportProcessor {
 
     console.log('Raw incoming message:', JSON.stringify(data, null, 2));
     console.log('Full context message:', originalMsg);
-
     console.log('data-report', data);
+
     try {
       this.logger.log(
         `Resultado de análise recebido para relatório ID ${data.report_id} (grupo ${data.group_id})`,

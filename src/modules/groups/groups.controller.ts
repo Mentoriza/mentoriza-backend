@@ -7,11 +7,9 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { AuthGuard } from '../auth/auth.guard';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GenerateGroupsDto } from './dto/generate-groups.dto';
 import { LinkAdvisorDto } from './dto/link-advisor.dto';
@@ -21,7 +19,7 @@ import { GroupsService } from './groups.service';
 
 @ApiTags('Groups')
 @ApiBearerAuth()
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
