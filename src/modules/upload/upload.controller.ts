@@ -44,6 +44,7 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
     @Body('groupId') groupId: string,
   ) {
+    console.log(file);
     const groupIdNumber = Number(groupId);
     if (isNaN(groupIdNumber) || groupIdNumber <= 0) {
       throw new BadRequestException('groupId deve ser um número positivo');
@@ -85,6 +86,6 @@ export class UploadController {
   @ApiResponse({ status: 201, description: 'Advisors created' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadAdvisors(@UploadedFile() file: Express.Multer.File) {
-    return this.bulkUploadService.uploadAdvisors(file);
+    return file;
   }
 }

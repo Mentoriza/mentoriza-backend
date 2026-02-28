@@ -116,10 +116,28 @@ export class GroupsService {
   }
 
   async delete(id: number) {
-    await this.findOne(id);
+    return this.prisma.$transaction(async (tx) => {
+      const group = await tx.group.findUnique({
+        where: { id },
+        select: { id: true, name: true },
+      });
 
-    return this.prisma.group.delete({
-      where: { id },
+      if (!group) {
+        throw new NotFoundException(`Grupo com ID ${id} não encontrado`);
+      }
+
+      await tx.student.updateMany({
+        where: { groupId: id },
+        data: { groupId: null },
+      });
+
+      await tx.group.delete({
+        where: { id },
+      });
+
+      return {
+        message: `Grupo "${group.name}" deletado com sucesso e estudantes liberados.`,
+      };
     });
   }
 
@@ -165,9 +183,10 @@ export class GroupsService {
     }
 
     if (student.groupId) {
-      throw new BadRequestException(
-        'Este estudante já está vinculado a outro grupo',
-      );
+      await this.prisma.student.update({
+        where: { id: dto.studentId },
+        data: { groupId },
+      });
     }
 
     return this.prisma.student.update({
@@ -356,7 +375,9 @@ export class GroupsService {
         groupId: null,
         course: dto.course,
         status: 'active',
+        deletedAt: null,
       },
+      select: { id: true },
     });
 
     if (students.length === 0) {
@@ -366,59 +387,98 @@ export class GroupsService {
     }
 
     const advisors = await this.prisma.advisor.findMany({
-      where: {
-        deletedAt: null,
-      },
+      where: { deletedAt: null },
+      select: { id: true },
     });
 
     if (advisors.length === 0) {
       throw new BadRequestException('Não há orientadores disponíveis');
     }
 
-    const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
+    const studentIds = students
+      .map((s) => s.id)
+      .sort(() => Math.random() - 0.5);
 
-    const numGroups = Math.ceil(shuffledStudents.length / dto.groupSize);
+    const numGroups = Math.ceil(studentIds.length / dto.groupSize);
 
-    const createdGroups: Array<
-      Awaited<ReturnType<typeof this.prisma.group.create>> & {
-        advisor: { id: number } | null;
-        students: Array<{ id: number }>;
-      }
-    > = [];
+    const groupsData = Array.from({ length: numGroups }, (_, i) => ({
+      name: `Grupo ${i + 1}`,
+      course: dto.course,
+      advisorId: advisors[Math.floor(Math.random() * advisors.length)].id,
+      isPublished: false,
+    }));
 
-    let studentIndex = 0;
+    let createdGroups: Array<{
+      id: number;
+      name: string;
+      course: string;
+      advisorId: number | null;
+      isPublished: boolean;
+    }> = [];
 
-    for (let i = 1; i <= numGroups; i++) {
-      const randomAdvisor =
-        advisors[Math.floor(Math.random() * advisors.length)];
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.group.createMany({
+          data: groupsData,
+          skipDuplicates: true,
+        });
 
-      const group = await this.prisma.group.create({
-        data: {
-          name: `Grupo ${i}`,
-          course: dto.course,
-          advisorId: randomAdvisor.id,
-          isPublished: false,
+        createdGroups = await tx.group.findMany({
+          where: {
+            course: dto.course,
+            name: { in: groupsData.map((g) => g.name) },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: numGroups,
+          select: {
+            id: true,
+            name: true,
+            course: true,
+            advisorId: true,
+            isPublished: true,
+          },
+        });
+
+        if (createdGroups.length !== numGroups) {
+          throw new Error('Não foi possível criar todos os grupos esperados');
+        }
+
+        let studentIndex = 0;
+        for (let i = 0; i < numGroups; i++) {
+          const groupId = createdGroups[i].id;
+          const currentGroupSize = Math.min(
+            dto.groupSize,
+            studentIds.length - studentIndex,
+          );
+
+          if (currentGroupSize === 0) continue;
+
+          const batchStudentIds = studentIds.slice(
+            studentIndex,
+            studentIndex + currentGroupSize,
+          );
+
+          await tx.student.updateMany({
+            where: { id: { in: batchStudentIds } },
+            data: { groupId },
+          });
+
+          studentIndex += currentGroupSize;
+        }
+      },
+      { timeout: 120000 },
+    );
+
+    const finalGroups = await this.prisma.group.findMany({
+      where: { id: { in: createdGroups.map((g) => g.id) } },
+      include: {
+        advisor: { select: { id: true, user: { select: { name: true } } } },
+        students: {
+          select: { id: true, ra: true, user: { select: { name: true } } },
         },
-        include: {
-          advisor: true,
-          students: true,
-        },
-      });
+      },
+    });
 
-      const currentGroupSize = Math.min(
-        dto.groupSize,
-        shuffledStudents.length - studentIndex,
-      );
-
-      for (let j = 0; j < currentGroupSize; j++) {
-        const student = shuffledStudents[studentIndex];
-        await this.studentsService.changeGroup(student.id, group.id);
-        studentIndex++;
-      }
-
-      createdGroups.push(group);
-    }
-
-    return createdGroups;
+    return finalGroups;
   }
 }

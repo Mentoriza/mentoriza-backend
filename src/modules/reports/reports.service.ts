@@ -208,6 +208,7 @@ export class ReportsService {
       data: {
         ...data,
         status: 'under_review' as ReportStatus,
+        deletedAt: null,
       },
       include: {
         group: {

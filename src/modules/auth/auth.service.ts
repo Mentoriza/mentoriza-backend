@@ -55,6 +55,7 @@ export class AuthService {
       user: {
         username: user.name ?? user.name ?? 'Usuário',
         email: user.email,
+        phone: user.phone ?? '',
       },
       token,
       expiresIn: expiresInStr,
@@ -127,30 +128,22 @@ export class AuthService {
       { expiresIn: '1h' },
     );
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        resetPasswordExpires: new Date(Date.now() + 60 * 60 * 1000),
-      },
-    });
-
     return token;
   }
 
   async validateResetToken(token: string): Promise<User | null> {
     try {
-      const payload = this.jwtService.verify(token);
-      if (payload.type !== 'reset_password') return null;
-
-      const user = await this.prisma.user.findUnique({
-        where: {
-          id: payload.sub,
-          resetPasswordToken: token,
-          resetPasswordExpires: { gt: new Date() },
-        },
+      const payload = this.jwtService.verify(token, {
+        secret:
+          this.configService.get<string>('JWT_RESET_SECRET') ||
+          this.configService.get<string>('JWT_SECRET'),
       });
 
-      return user;
+      if (payload.type !== 'reset_password') return null;
+
+      return await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
     } catch {
       return null;
     }

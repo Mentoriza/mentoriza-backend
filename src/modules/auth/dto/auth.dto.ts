@@ -11,6 +11,7 @@ export class AuthResponseDTO {
   user: {
     username: string;
     email: string;
+    phone: string;
   };
 
   @ApiProperty({

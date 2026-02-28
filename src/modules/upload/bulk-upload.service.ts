@@ -1,368 +1,320 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import csvParser from 'csv-parser';
 import { ROLES, USER_STATUS } from 'src/common/constants';
 
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Readable } from 'stream';
-import * as XLSX from 'xlsx';
 import { PasswordUtil } from '../../common/utils/password.util';
 import { AuthService } from '../auth/auth.service';
 import { EmailQueueService } from '../email/email-queue.service';
-import { EmailService } from '../email/email.service';
+
+type StudentRow = {
+  name: string;
+  email: string;
+  course: string;
+  class: string;
+  phone?: string | null;
+  ra?: string | null;
+  birthdate?: string | null;
+};
+
+type UploadResult = {
+  success: boolean;
+  created: number;
+  skipped: number;
+  errors: Array<{ rowIndex?: number; row?: any; error: string }>;
+};
 
 @Injectable()
 export class BulkUploadService {
+  private studentRoleId: number | null = null;
+
   constructor(
     private readonly prisma: PrismaService,
-    private emailService: EmailService,
-    private emailQueueService: EmailQueueService,
-    private authService: AuthService,
-    private configService: ConfigService,
+    private readonly emailQueueService: EmailQueueService,
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
   ) {}
 
-  private async processCsvStream(
-    buffer: Buffer,
-    processor: (
-      row: any,
-    ) => Promise<{ created: boolean; skipped?: boolean; error?: string }>,
-  ): Promise<{ created: number; skipped: number; errors: any[] }> {
-    return new Promise((resolve, reject) => {
-      let created = 0;
-      let skipped = 0;
-      const errors: any[] = [];
-      const stream = Readable.from(buffer)
-        .pipe(csvParser())
-        .on('data', async (row) => {
-          stream.pause();
-          try {
-            const result = await processor(row);
-            if (result.created) created++;
-            if (result.skipped) skipped++;
-            if (result.error) errors.push({ row, error: result.error });
-          } catch (error) {
-            errors.push({ row, error: error.message });
-          }
-          stream.resume();
-        })
-        .on('end', () => resolve({ created, skipped, errors }))
-        .on('error', reject);
+  private async getStudentRoleId(tx = this.prisma): Promise<number> {
+    if (this.studentRoleId !== null) return this.studentRoleId;
+
+    const role = await tx.role.findUniqueOrThrow({
+      where: { name: ROLES.STUDENT },
+      select: { id: true },
     });
+
+    this.studentRoleId = role.id;
+    return role.id;
   }
 
-  private async processExcelBuffer(
-    buffer: Buffer,
-    processor: (
-      row: any,
-    ) => Promise<{ created: boolean; skipped?: boolean; error?: string }>,
-  ): Promise<{ created: number; skipped: number; errors: any[] }> {
-    try {
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      let created = 0;
-      let skipped = 0;
-      const errors: any[] = [];
-
-      for (let i = 1; i < rows.length; i++) {
-        const row: any = rows[i];
-        const data: any = {};
-        (rows[0] as string[]).forEach((header, index) => {
-          data[header.trim().toLowerCase()] = row[index];
-        });
-        const result = await processor(data);
-        if (result.created) created++;
-        if (result.skipped) skipped++;
-        if (result.error) errors.push({ row: data, error: result.error });
-      }
-
-      return { created, skipped, errors };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Erro ao processar o arquivo Excel: ' + error.message,
-      );
-    }
-  }
-
-  async uploadStudents(file: Express.Multer.File): Promise<{
-    success: boolean;
-    created: number;
-    skipped: number;
-    errors: any[];
-  }> {
-    if (!file) {
+  async uploadStudents(file: Express.Multer.File): Promise<UploadResult> {
+    if (!file?.buffer) {
       throw new BadRequestException('Nenhum arquivo fornecido');
     }
 
-    if (
-      ![
-        'text/csv',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-      ].includes(file.mimetype)
-    ) {
+    if (file.mimetype !== 'text/csv') {
       throw new BadRequestException(
-        'Apenas arquivos CSV ou Excel são permitidos',
+        'Apenas arquivos CSV são permitidos no momento',
       );
     }
 
-    const processor = async (
-      row: any,
-    ): Promise<{ created: boolean; skipped?: boolean; error?: string }> => {
-      const {
+    const rawRows = await this.parseCsv(file.buffer);
+
+    const { validRows, errors } = this.validateAndNormalizeRows(rawRows);
+
+    if (validRows.length === 0) {
+      return { success: true, created: 0, skipped: 0, errors };
+    }
+
+    const uniqueRowsByEmail = new Map<string, StudentRow>();
+    const duplicateWarnings: Array<{ row: StudentRow; error: string }> = [];
+
+    for (const row of validRows) {
+      if (uniqueRowsByEmail.has(row.email)) {
+        duplicateWarnings.push({
+          row,
+          error: `Email duplicado ignorado (mantida a primeira ocorrência): ${row.email}`,
+        });
+      } else {
+        uniqueRowsByEmail.set(row.email, row);
+      }
+    }
+
+    const deduplicatedRows = Array.from(uniqueRowsByEmail.values());
+    const emails = deduplicatedRows.map((r) => r.email);
+
+    const [existingUsers, existingStudents] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { email: { in: emails }, deletedAt: null },
+        select: { id: true, email: true },
+      }),
+      this.prisma.student.findMany({
+        where: { user: { email: { in: emails }, deletedAt: null } },
+        select: { ra: true, user: { select: { email: true } } },
+      }),
+    ]);
+
+    const emailToUserId = new Map(existingUsers.map((u) => [u.email, u.id]));
+    const existingRAs = new Set(
+      existingStudents.map((s) => s.ra).filter(Boolean),
+    );
+    const emailHasStudent = new Map(
+      existingStudents.map((s) => [s.user.email, true]),
+    );
+
+    const newUsersData: Array<{
+      email: string;
+      name: string;
+      phone: string | null;
+      password: string;
+    }> = [];
+
+    const existingToProcess: Array<StudentRow & { userId: number }> = [];
+    const toSkip: StudentRow[] = [];
+
+    for (const row of deduplicatedRows) {
+      const userId = emailToUserId.get(row.email);
+
+      if (userId) {
+        if (
+          emailHasStudent.get(row.email) ||
+          (row.ra && existingRAs.has(row.ra))
+        ) {
+          toSkip.push(row);
+        } else {
+          existingToProcess.push({ ...row, userId });
+        }
+      } else {
+        newUsersData.push({
+          email: row.email,
+          name: row.name,
+          phone: row.phone ?? null,
+          password: await PasswordUtil.hash(
+            PasswordUtil.generateSecurePassword(16),
+          ),
+        });
+      }
+    }
+
+    let created = 0;
+    const emailsToSend: Array<{
+      name: string;
+      email: string;
+      resetLink: string;
+      courseCode: string;
+      studentRA: string;
+    }> = [];
+
+    const studentRoleId = await this.getStudentRoleId();
+
+    await this.prisma.$transaction(
+      async (tx) => {
+        if (newUsersData.length > 0) {
+          await tx.user.createMany({
+            data: newUsersData,
+            skipDuplicates: true,
+          });
+
+          const createdUsers = await tx.user.findMany({
+            where: {
+              email: { in: newUsersData.map((u) => u.email) },
+              deletedAt: null,
+            },
+            select: { id: true, email: true },
+          });
+
+          const emailToNewUserId = new Map(
+            createdUsers.map((u) => [u.email, u.id]),
+          );
+
+          const studentsToCreate = deduplicatedRows
+            .filter((r) => !emailToUserId.has(r.email))
+            .map((r) => ({
+              userId: emailToNewUserId.get(r.email)!,
+              ra: r.ra ?? null,
+              course: r.course,
+              class: r.class,
+              phone: r.phone ?? null,
+              birthDate: r.birthdate ? new Date(r.birthdate) : null,
+              status: USER_STATUS.ACTIVE,
+            }));
+
+          if (studentsToCreate.length > 0) {
+            await tx.student.createMany({ data: studentsToCreate });
+          }
+
+          const userRoles = createdUsers.map((u) => ({
+            userId: u.id,
+            roleId: studentRoleId,
+          }));
+
+          if (userRoles.length > 0) {
+            await tx.userRole.createMany({
+              data: userRoles,
+              skipDuplicates: true,
+            });
+          }
+
+          created += studentsToCreate.length;
+
+          for (const r of deduplicatedRows.filter(
+            (r) => !emailToUserId.has(r.email),
+          )) {
+            const userId = emailToNewUserId.get(r.email);
+            if (!userId) continue;
+
+            const token = await this.authService.generateResetToken(userId);
+            const frontendUrl =
+              this.configService.get<string>('FRONTEND_URL') ??
+              'http://localhost:3000';
+            const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+            emailsToSend.push({
+              name: r.name,
+              email: r.email,
+              resetLink,
+              courseCode: r.course,
+              studentRA: r.ra ?? '',
+            });
+          }
+        }
+
+        if (existingToProcess.length > 0) {
+          const studentsToCreate = existingToProcess.map((r) => ({
+            userId: r.userId,
+            ra: r.ra ?? null,
+            course: r.course,
+            class: r.class,
+            phone: r.phone ?? null,
+            birthDate: r.birthdate ? new Date(r.birthdate) : null,
+            status: USER_STATUS.ACTIVE,
+          }));
+
+          await tx.student.createMany({ data: studentsToCreate });
+
+          const userRoles = existingToProcess.map((r) => ({
+            userId: r.userId,
+            roleId: studentRoleId,
+          }));
+
+          await tx.userRole.createMany({
+            data: userRoles,
+            skipDuplicates: true,
+          });
+
+          created += existingToProcess.length;
+        }
+      },
+      { timeout: 45000 },
+    );
+
+    errors.push(...duplicateWarnings);
+
+    return {
+      success: true,
+      created,
+      skipped: toSkip.length,
+      errors,
+    };
+  }
+
+  private validateAndNormalizeRows(rawRows: any[]): {
+    validRows: StudentRow[];
+    errors: Array<{ rowIndex?: number; row: any; error: string }>;
+  } {
+    const validRows: StudentRow[] = [];
+    const errors: Array<{ rowIndex: number; row: any; error: string }> = [];
+
+    rawRows.forEach((row, index) => {
+      const name = (row.name ?? '').trim();
+      const email = (row.email ?? '').trim().toLowerCase();
+      const course = (row.course ?? '').trim().toLowerCase();
+      const studentClass = (row.class ?? row.className ?? '').trim();
+
+      if (!name || !email || !course || !studentClass) {
+        errors.push({
+          rowIndex: index + 2,
+          row,
+          error: 'Campos obrigatórios ausentes: name, email, course, class',
+        });
+        return;
+      }
+
+      if (
+        !['engenharia_informatica', 'engenharia_electronica'].includes(course)
+      ) {
+        errors.push({
+          rowIndex: index + 2,
+          row,
+          error:
+            'Curso inválido: deve ser "engenharia_informatica" ou "engenharia_electronica"',
+        });
+        return;
+      }
+
+      validRows.push({
         name,
         email,
         course,
         class: studentClass,
-        phone,
-        ra,
-        birthdate,
-      } = row;
-
-      if (!name || !email || !course || !studentClass) {
-        return {
-          created: false,
-          error: 'Campos obrigatórios ausentes: name, email, course, class',
-        };
-      }
-
-      if (!['Informática', 'Eletrônica'].includes(course)) {
-        return {
-          created: false,
-          error: 'Curso inválido: deve ser Informática ou Eletrônica',
-        };
-      }
-
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+        phone: row.phone ? String(row.phone).trim() : null,
+        ra: row.ra ? String(row.ra).trim() : null,
+        birthdate: row.birthdate ? String(row.birthdate).trim() : null,
       });
+    });
 
-      if (existingUser) {
-        const existingStudent = await this.prisma.student.findUnique({
-          where: { userId: existingUser.id },
-        });
-        if (existingStudent) {
-          return { created: false, skipped: true };
-        }
-
-        await this.prisma.student.create({
-          data: {
-            userId: existingUser.id,
-            ra: ra || null,
-            course,
-            class: studentClass,
-            phone: phone || null,
-            birthDate: birthdate ? new Date(birthdate) : null,
-            status: USER_STATUS.ACTIVE,
-          },
-        });
-
-        const studentRole = await this.prisma.role.findUnique({
-          where: { name: ROLES.STUDENT },
-        });
-        if (studentRole) {
-          await this.prisma.userRole.upsert({
-            where: {
-              userId_roleId: {
-                userId: existingUser.id,
-                roleId: studentRole.id,
-              },
-            },
-            update: {},
-            create: { userId: existingUser.id, roleId: studentRole.id },
-          });
-        }
-
-        return { created: true };
-      }
-
-      const plainPassword = PasswordUtil.generateSecurePassword(16);
-      const hashedPassword = await PasswordUtil.hash(plainPassword);
-
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          phone: phone || null,
-          status: USER_STATUS.ACTIVE,
-        },
-      });
-
-      await this.prisma.student.create({
-        data: {
-          userId: user.id,
-          ra: ra || null,
-          course,
-          class: studentClass,
-          phone: phone || null,
-          birthDate: birthdate ? new Date(birthdate) : null,
-          status: USER_STATUS.ACTIVE,
-        },
-      });
-
-      const studentRole = await this.prisma.role.findUnique({
-        where: { name: ROLES.STUDENT },
-      });
-      if (studentRole) {
-        await this.prisma.userRole.create({
-          data: { userId: user.id, roleId: studentRole.id },
-        });
-      }
-
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-      const resetToken = await this.authService.generateResetToken(user.id);
-      const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
-
-      await this.emailQueueService.sendWelcomeCredentialsEmail({
-        studentName: name,
-        email,
-
-        courseCode: course || '',
-        studentRA: ra || '',
-        resetLink,
-        password: '',
-      });
-
-      return { created: true };
-    };
-
-    let result;
-    if (file.mimetype === 'text/csv') {
-      result = await this.processCsvStream(file.buffer, processor);
-    } else {
-      result = await this.processExcelBuffer(file.buffer, processor);
-    }
-
-    return { success: true, ...result };
+    return { validRows, errors };
   }
 
-  async uploadAdvisors(file: Express.Multer.File): Promise<{
-    success: boolean;
-    created: number;
-    skipped: number;
-    errors: any[];
-  }> {
-    if (!file) {
-      throw new BadRequestException('Nenhum arquivo fornecido');
+  private async parseCsv(buffer: Buffer): Promise<any[]> {
+    const results: any[] = [];
+    const stream = Readable.from(buffer).pipe(csvParser());
+
+    for await (const row of stream) {
+      results.push(row);
     }
-
-    if (
-      ![
-        'text/csv',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-      ].includes(file.mimetype)
-    ) {
-      throw new BadRequestException(
-        'Apenas arquivos CSV ou Excel são permitidos',
-      );
-    }
-
-    const processor = async (
-      row: any,
-    ): Promise<{ created: boolean; skipped?: boolean; error?: string }> => {
-      const { name, email, phone, specialty, lattes } = row;
-
-      if (!name || !email) {
-        return {
-          created: false,
-          error: 'Campos obrigatórios ausentes: name, email',
-        };
-      }
-
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (existingUser) {
-        const existingAdvisor = await this.prisma.advisor.findUnique({
-          where: { userId: existingUser.id },
-        });
-        if (existingAdvisor) {
-          return { created: false, skipped: true }; // Pular se advisor já existe
-        }
-        // Se user existe mas não é advisor, criar apenas o advisor
-        await this.prisma.advisor.create({
-          data: {
-            userId: existingUser.id,
-            specialty: specialty || null,
-            lattes: lattes || null,
-          },
-        });
-
-        const advisorRole = await this.prisma.role.findUnique({
-          where: { name: ROLES.ADVISOR },
-        });
-        if (advisorRole) {
-          await this.prisma.userRole.upsert({
-            where: {
-              userId_roleId: {
-                userId: existingUser.id,
-                roleId: advisorRole.id,
-              },
-            },
-            update: {},
-            create: { userId: existingUser.id, roleId: advisorRole.id },
-          });
-        }
-
-        return { created: true };
-      }
-
-      // Se user não existe, criar user + advisor
-      const plainPassword = PasswordUtil.generateSecurePassword(16);
-      const hashedPassword = await PasswordUtil.hash(plainPassword);
-
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          phone: phone || null,
-          status: USER_STATUS.ACTIVE,
-        },
-      });
-
-      await this.prisma.advisor.create({
-        data: {
-          userId: user.id,
-          specialty: specialty || null,
-          lattes: lattes || null,
-        },
-      });
-
-      const advisorRole = await this.prisma.role.findUnique({
-        where: { name: ROLES.ADVISOR },
-      });
-      if (advisorRole) {
-        await this.prisma.userRole.create({
-          data: { userId: user.id, roleId: advisorRole.id },
-        });
-      }
-
-      // Opcional: enviar email com senha apenas para novos users
-      // await this.emailService.sendWelcomeEmail({ email, name, plainPassword });
-
-      return { created: true };
-    };
-
-    let result;
-    if (file.mimetype === 'text/csv') {
-      result = await this.processCsvStream(file.buffer, processor);
-    } else {
-      result = await this.processExcelBuffer(file.buffer, processor);
-    }
-
-    return { success: true, ...result };
+    return results;
   }
 }
