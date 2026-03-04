@@ -30,6 +30,7 @@ export class ReportProcessor {
       score: number;
       status: ReportStatus;
       processed_at: string;
+      errors: any[];
     },
     @Ctx() context: RmqContext,
   ) {
@@ -50,8 +51,9 @@ export class ReportProcessor {
         data: {
           score: data.score,
           status: data.status,
-          keyResults: JSON.stringify(data.keyResults),
+          keyResults: data.keyResults,
           observations: data.observations,
+          errors: data.errors,
           analyzedAt: new Date(),
         },
       });

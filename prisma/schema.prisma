@@ -79,6 +79,7 @@ model Report {
   score         Float? 
   observations  String[]  
   keyResults    Json?  
+  errors        Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   deletedAt     DateTime?

@@ -44,13 +44,53 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
     @Body('groupId') groupId: string,
   ) {
-    console.log(file);
     const groupIdNumber = Number(groupId);
     if (isNaN(groupIdNumber) || groupIdNumber <= 0) {
       throw new BadRequestException('groupId deve ser um número positivo');
     }
 
     return this.uploadService.uploadAndProcessPdf(file, groupIdNumber);
+  }
+
+  @Post('reports-docx')
+  @ApiOperation({ summary: 'Upload de relatório DOCX' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        groupId: { type: 'number', example: 1 },
+      },
+      required: ['file', 'groupId'],
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadDocx(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('groupId') groupId: string,
+  ) {
+    const groupIdNumber = Number(groupId);
+    if (isNaN(groupIdNumber) || groupIdNumber <= 0) {
+      throw new BadRequestException('groupId deve ser um número positivo');
+    }
+
+    if (!file) throw new BadRequestException('Nenhum arquivo fornecido');
+    if (
+      file.mimetype !==
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+      throw new BadRequestException('Apenas arquivos .docx são permitidos');
+    }
+
+    const MAX_SIZE = 40 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      throw new BadRequestException(
+        `Tamanho máximo: ${MAX_SIZE / (1024 * 1024)} MB`,
+      );
+    }
+
+    return this.uploadService.uploadAndProcessDocx(file, groupIdNumber);
   }
 
   @Post('students-csv')

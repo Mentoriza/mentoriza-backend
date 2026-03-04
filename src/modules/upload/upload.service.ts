@@ -23,6 +23,79 @@ export class UploadService {
     private readonly reportQueueService: ReportQueueService,
   ) {}
 
+  async uploadAndProcessDocx(
+    file: Express.Multer.File,
+    groupId: number,
+  ): Promise<{
+    success: boolean;
+    reportId: number;
+    url: string;
+    publicId: string;
+    message: string;
+  }> {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo fornecido');
+    }
+
+    if (
+      file.mimetype !==
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+      throw new BadRequestException('Apenas arquivos DOCX são permitidos');
+    }
+
+    const MAX_SIZE = 40 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      throw new BadRequestException(
+        `O arquivo excede o limite de ${MAX_SIZE / (1024 * 1024)}MB`,
+      );
+    }
+
+    const activeSubmission =
+      await this.submissionsService.getActiveSubmission();
+    if (!activeSubmission) {
+      throw new BadRequestException('Não há submissão ativa no momento');
+    }
+
+    const group = await this.prisma.group.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException(`Grupo com ID ${groupId} não encontrado`);
+    }
+
+    const { url, publicId } = await this.uploadToCloudinaryDocx(file, groupId);
+
+    const report = await this.reportsService.createReportRecord({
+      groupId,
+      fileUrl: url,
+      publicId,
+      submissionId: activeSubmission.id,
+    });
+
+    const indicators = await this.indicatorsService.findAllActive();
+
+    await this.reportQueueService.enqueueReportEvaluation({
+      reportId: report.id,
+      groupId,
+      submissionId: activeSubmission.id,
+      fileUrl: url,
+      publicId,
+      indicators,
+      fileType: 'docx',
+      requestedAt: new Date().toISOString(),
+    } as ReportEvaluationEvent);
+
+    return {
+      success: true,
+      reportId: report.id,
+      url,
+      publicId,
+      message:
+        'Relatório recebido. Avaliação em andamento. E-mails enviados ao grupo.',
+    };
+  }
+
   async uploadAndProcessPdf(
     file: Express.Multer.File,
     groupId: number,
@@ -132,6 +205,44 @@ export class UploadService {
         },
       );
 
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
+  }
+
+  private async uploadToCloudinaryDocx(
+    file: Express.Multer.File,
+    groupId: number,
+  ): Promise<{ url: string; publicId: string }> {
+    const now = new Date();
+    const baseName = `report_${now.toISOString().replace(/[:.]/g, '-')}.docx`;
+    const publicId = `reports/${groupId}/${baseName}`;
+
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: 'raw', public_id: publicId },
+        (error, result) => {
+          if (error) {
+            reject(
+              new InternalServerErrorException(
+                `Falha no upload para Cloudinary: ${error.message}`,
+              ),
+            );
+            return;
+          }
+          if (!result) {
+            reject(
+              new InternalServerErrorException(
+                'Resultado do upload indefinido',
+              ),
+            );
+            return;
+          }
+          resolve({
+            url: result.secure_url,
+            publicId: result.public_id,
+          });
+        },
+      );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
